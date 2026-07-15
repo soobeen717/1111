@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>몽글몽글 늑대의 방 - 초기화 기능 완벽 빌드</title>
+    <style>
+        /* --- [1. 몽글몽글 기본 테마 및 갈색 버튼] --- */
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background-color: #faf6ee;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden; color: #5c4b37;
+        }
+
+        button { font-family: inherit; border: none; border-radius: 20px; cursor: pointer; transition: all 0.2s ease; }
+        button:active { transform: translateY(3px); }
+
+        /* --- [2. 상단 헤더: 경험치 바 포함] --- */
+        .header {
+            width: 100%; max-width: 480px; background-color: #f7ede2;
+            border-radius: 0 0 25px 25px; padding: 12px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-sizing: border-box; border: 3px solid #e6ccb2; border-top: none;
+        }
+        .status-group { display: flex; align-items: center; gap: 10px; }
+        .level-badge { background-color: #b07d62; color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.9rem; }
+        
+        .xp-bar-container { width: 80px; height: 10px; background-color: #ddc8bc; border-radius: 10px; overflow: hidden; border: 1px solid #fff; }
+        .xp-bar { width: 0%; height: 100%; background-color: #7f5539; transition: width 0.3s; }
+        .coin-display { font-size: 1.1rem; font-weight: bold; background-color: #ede0d4; padding: 6px 14px; border-radius: 20px; border: 2px solid #ddc8bc; color: #7f5539; }
+
+        /* --- [3. 게임 화면 및 방 인테리어] --- */
+        .game-area { flex: 1; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 15px; box-sizing: border-box; }
+        .timer-display { font-size: 3rem; font-weight: 900; color: #7f5539; text-shadow: 2px 2px 0px #fff; margin: 5px 0; }
+
+        .wolf-room {
+            width: 100%; height: 290px; border-radius: 30px; border: 6px solid #b08968;
+            background-color: #ede0d4; position: relative; overflow: hidden;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.05);
+            transition: background-color 0.4s;
+        }
+
+        .room-floor { position: absolute; bottom: 0; width: 100%; height: 60px; background-color: #9c6644; border-top: 4px solid #7f5539; z-index: 1; transition: background-color 0.4s; }
+        .desk { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 200px; height: 35px; background-color: #7f5539; border-radius: 8px; border: 3px solid #5c3f26; z-index: 2; }
+        .desk-lamp { position: absolute; bottom: 40px; right: 150px; font-size: 1.5rem; z-index: 4; display: none; }
+
+        /* --- [4. 이모티콘 늑대 캐릭터 영역] --- */
+        .character-container {
+            position: absolute; bottom: 25px; left: 50%; 
+            transform: translateX(-50%); z-index: 3;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .wolf-avatar { font-size: 5.5rem; position: relative; animation: study-nod 2s infinite ease-in-out; transform-origin: bottom center; }
+        .study-tools { position: absolute; top: -10px; right: -10px; font-size: 1.5rem; z-index: 5; }
+        .is-focusing .study-tools { animation: pencil-wiggle 0.5s infinite ease-in-out; }
+
+        @keyframes study-nod { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+        @keyframes pencil-wiggle { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(3px, -3px) rotate(-15deg); } }
+
+        .bubble { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background-color: white; padding: 8px 15px; border-radius: 15px; font-size: 0.85rem; font-weight: bold; border: 2px solid #ddc8bc; white-space: nowrap; z-index: 6; }
+        .bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent; }
+
+        /* --- [5. 하단 제어판 및 갈색 버튼] --- */
+        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-bottom: 5px; }
+        .timer-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #a98467, #adc178); color: white; border-radius: 25px; font-size: 1.25rem; font-weight: bold; box-shadow: 0 5px 0 #6c584c; }
+        
+        .button-group { display: flex; justify-content: space-between; gap: 12px; }
+        .action-btn { flex: 1; padding: 14px; font-size: 1.05rem; font-weight: bold; color: white; border-radius: 20px; }
+        .mission-btn { background: #b08968; box-shadow: 0 4px 0 #7f5539; }
+        .decor-btn { background: #9c6644; box-shadow: 0 4px 0 #5c3f26; }
+        .group-btn { background: #7f5539; box-shadow: 0 4px 0 #4d331f; }
+
+        /* --- [6. 모달 팝업 디자인] --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(92, 75, 55, 0.4); justify-content: center; align-items: center; z-index: 10; }
+        .modal-content { background-color: #fffdf9; width: 90%; max-width: 400px; border-radius: 30px; border: 4px solid #ddc8bc; padding: 25px; box-sizing: border-box; max-height: 80vh; overflow-y: auto;}
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed #ddc8bc; padding-bottom: 10px; }
+        .modal-title { font-size: 1.3rem; font-weight: bold; color: #7f5539; }
+        .close-btn { font-size: 1.5rem; background: none; color: #aaa; }
+
+        /* 미션 아이템 */
+        .mission-item { background-color: #fcf9f2; border: 2px solid #ede0d4; padding: 12px; border-radius: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .claim-btn { padding: 8px 14px; font-size: 0.85rem; font-weight: bold; background-color: #b08968; color: white; box-shadow: 0 3px 0 #7f5539; }
+        .claim-btn:disabled { background-color: #cfd8dc; box-shadow: none; cursor: not-allowed; }
+
+        /* 인테리어 상점용 스타일 */
+        .reset-decor-btn { width: 100%; padding: 12px; background-color: #e63946; color: white; font-weight: bold; font-size: 0.95rem; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 0 #b7094c; }
+        .decor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .decor-item { background-color: #fff; border: 2px solid #ddc8bc; border-radius: 20px; padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .buy-btn { width: 100%; padding: 8px; font-size: 0.85rem; background-color: #ddb892; color: #5c3f26; font-weight: bold; box-shadow: 0 3px 0 #b08968; }
+
+        /* 그룹 구역 */
+        .group-section { margin-bottom: 15px; padding: 12px; background-color: #fcf9f2; border-radius: 15px; border: 2px solid #ede0d4; }
+        .code-display { width: 100%; padding: 8px; background-color: #eee; border-radius: 10px; font-family: monospace; font-size: 0.75rem; word-break: break-all; margin-bottom: 8px; box-sizing: border-box; }
+        .group-input { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid #ddc8bc; box-sizing: border-box; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="status-group">
+            <span class="level-badge" id="level-display">Lv.1</span>
+            <div class="xp-bar-container"><div class="xp-bar" id="xp-bar"></div></div>
+        </div>
+        <div class="coin-display" id="coin-display">🪙 50</div>
+    </div>
+
+    <div class="game-area">
+        <div class="timer-display" id="timer">00:10</div>
+
+        <div class="wolf-room" id="room">
+            <div class="bubble" id="bubble-chat">음냐.. 가구가 이상해지면 상점에서 초기화해줘! 🐺</div>
+            <div class="desk-lamp" id="desk-lamp">💡</div>
+
+            <div class="character-container">
+                <div class="wolf-avatar">
+                    🐺
+                    <div class="study-tools">📝✏️</div>
+                </div>
+            </div>
+
+            <div class="desk"></div>
+            <div class="room-floor" id="room-floor"></div>
+        </div>
+
+        <div class="control-panel">
+            <button class="timer-btn" id="timer-btn" onclick="toggleFocus()">📝 집중 공부 시작</button>
+            <div class="button-group">
+                <button class="action-btn mission-btn" onclick="openModal('mission-modal')">미션</button>
+                <button class="action-btn decor-btn" onclick="openModal('decor-modal')">꾸미기</button>
+                <button class="action-btn group-btn" onclick="openModal('group-modal')">👥 그룹</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="mission-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">🏆 오늘의 일일 퀘스트</span>
+                <button class="close-btn" onclick="closeModal('mission-modal')">❌</button>
+            </div>
+            <div id="mission-list"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="decor-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">🎨 방 인테리어 상점</span>
+                <button class="close-btn" onclick="closeModal('decor-modal')">❌</button>
+            </div>
+            <button class="reset-decor-btn" onclick="resetRoomDecor()">🧹 방 인테리어 초기화</button>
+            <div class="decor-grid" id="decor-grid"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">👥 그룹 코드 연동</span>
+                <button class="close-btn" onclick="closeModal('group-modal')">❌</button>
+            </div>
+            <div class="group-section">
+                <div>📤 내 방 코드 복사</div>
+                <div class="code-display" id="my-code-display">생성 중...</div>
+                <button class="buy-btn" onclick="copyMyCode()">📋 코드 복사</button>
+            </div>
+            <div class="group-section">
+                <div>📥 친구 방 코드 입력</div>
+                <input type="text" class="group-input" id="friend-code-input" placeholder="코드를 붙여넣으세요">
+                <button class="buy-btn" style="background-color:#7f5539; color:white;" onclick="loadFriendCode()">➕ 초대 확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 글로벌 상태 관리 ---
+        let gameState = {
+            level: 1, xp: 0, coins: 50,
+            roomDecor: { wallpaper: "default", lamp: false, floor: "wood" },
+            inventory: [],
+            userId: 'wolf_' + Math.random().toString(36).substr(2, 5),
+            focusCount: 0
+        };
+
+        // 가구 데이터 리스트
+        const shopItems = [
+            { id: "pink_wall", name: "러블리 핑크 벽지", type: "wallpaper", price: 20, icon: "🌸" },
+            { id: "blue_wall", name: "시원 파랑 벽지", type: "wallpaper", price: 25, icon: "🐳" },
+            { id: "lamp", name: "스탠드 조명등", type: "lamp", price: 30, icon: "💡" },
+            { id: "carpet", name: "구름 카펫 바닥", type: "floor", price: 35, icon: "☁️" }
+        ];
+
+        function getTargetTime() {
+            if (gameState.level === 1) return 10;
+            let calculatedTime = (gameState.level - 1) * 60;
+            return Math.min(calculatedTime, 600); // 상한선 10분
+        }
+
+        function getMissions() {
+            let targetCount = gameState.level; 
+            return [
+                { id: "m1", title: `집중 타이머 ${targetCount}회 성공하기 ⏱️`, goal: targetCount, current: gameState.focusCount, rewardCoin: 20, claimed: false },
+                { id: "m2", title: `방 꾸미기 가구 1개 이상 배치 🎨`, goal: 1, current: gameState.inventory.length, rewardCoin: 30, claimed: false }
+            ];
+        }
+
+        window.onload = function() {
+            timeLeft = getTargetTime();
+            updateAllUI();
+        };
+
+        function updateAllUI() {
+            document.getElementById('level-display').innerText = `Lv.${gameState.level}`;
+            document.getElementById('coin-display').innerText = `🪙 ${gameState.coins}`;
+            
+            let neededXp = gameState.level * 100;
+            document.getElementById('xp-bar').style.width = `${(gameState.xp / neededXp) * 100}%`;
+
+            // 가구 스타일 화면 적용
+            let room = document.getElementById('room');
+            let lamp = document.getElementById('desk-lamp');
+            let floor = document.getElementById('room-floor');
+
+            if (gameState.roomDecor.wallpaper === "pink_wall") room.style.backgroundColor = "#fce4ec";
+            else if (gameState.roomDecor.wallpaper === "blue_wall") room.style.backgroundColor = "#e3f2fd";
+            else room.style.backgroundColor = "#ede0d4";
+
+            lamp.style.display = gameState.roomDecor.lamp ? "block" : "none";
+            floor.style.backgroundColor = gameState.roomDecor.floor === "carpet" ? "#e2e7ec" : "#9c6644";
+
+            if(!isFocusing) {
+                timeLeft = getTargetTime();
+                updateTimerDisplay();
+            }
+
+            generateMyCode();
+            renderMissions();
+            renderShop();
+        }
+
+        // --- 🧹 신규 추가: 가구 인테리어 초기화 시스템 ---
+        function resetRoomDecor() {
+            gameState.roomDecor.wallpaper = "default";
+            gameState.roomDecor.lamp = false;
+            gameState.roomDecor.floor = "wood";
+            alert("🧹 늑대의 방 인테리어를 기본 상태로 깔끔하게 초기화했습니다!");
+            updateAllUI();
+            closeModal('decor-modal');
+        }
+
+        // --- 미션 시스템 ---
+        function renderMissions() {
+            const list = document.getElementById('mission-list');
+            list.innerHTML = "";
+            let currentMissions = getMissions();
+
+            currentMissions.forEach(m => {
+                let isCompleted = m.current >= m.goal;
+                let btnText = isCompleted ? "보상 받기" : "진행 중";
+                let disabled = !isCompleted || m.claimed;
+                if (localStorage.getItem(`claimed_${m.id}_lv${gameState.level}`)) btnText = "완료됨";
+
+                let item = document.createElement('div');
+                item.className = "mission-item";
+                item.innerHTML = `
+                    <div>
+                        <b style="font-size:0.9rem;">${m.title}</b><br>
+                        <span style="font-size:0.8rem; color:#b08968;">진행도: (${m.current}/${m.goal}) | 🪙 +${m.rewardCoin}</span>
+                    </div>
+                    <button class="claim-btn" ${disabled ? 'disabled' : ''} onclick="claimReward('${m.id}', ${m.rewardCoin})">${btnText}</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function claimReward(id, coin) {
+            localStorage.setItem(`claimed_${id}_lv${gameState.level}`, true);
+            gameState.coins += coin;
+            alert(`🎁 미션 완료 보상으로 🪙 ${coin} 코인을 획득했습니다!`);
+            updateAllUI();
+        }
+
+        // --- 꾸미기 상점 시스템 ---
+        function renderShop() {
+            const grid = document.getElementById('decor-grid');
+            grid.innerHTML = "";
+
+            shopItems.forEach(item => {
+                let isOwned = gameState.inventory.includes(item.id);
+                let isApplied = (item.type === "wallpaper" && gameState.roomDecor.wallpaper === item.id) ||
+                                (item.type === "lamp" && gameState.roomDecor.lamp === true && item.id === "lamp") ||
+                                (item.type === "floor" && gameState.roomDecor.floor === item.id);
+
+                let btnText = `🪙 ${item.price}`;
+                let action = `buyItem('${item.id}', ${item.price})`;
+
+                if (isApplied) { btnText = "배치됨"; action = ""; }
+                else if (isOwned) { btnText = "가구 배치"; action = `applyItem('${item.id}', '${item.type}')`; }
+
+                let box = document.createElement('div');
+                box.className = "decor-item";
+                box.innerHTML = `
+                    <div style="font-size:2rem;">${item.icon}</div>
+                    <div style="font-size:0.8rem; font-weight:bold;">${item.name}</div>
+                    <button class="buy-btn" onclick="${action}">${btnText}</button>
+                `;
+                grid.appendChild(box);
+            });
+        }
+
+        function buyItem(id, price) {
+            if (gameState.coins >= price) {
+                gameState.coins -= price;
+                gameState.inventory.push(id);
+                alert("🛒 가구를 성공적으로 구매했습니다! [가구 배치] 버튼을 눌러보세요.");
+                updateAllUI();
+            } else { alert("🪙 코인이 부족해요! 열심히 공부해봅시다."); }
+        }
+
+        function applyItem(id, type) {
+            if (type === "wallpaper") gameState.roomDecor.wallpaper = id;
+            if (type === "lamp") gameState.roomDecor.lamp = true;
+            if (type === "floor") gameState.roomDecor.floor = id;
+            alert("✨ 늑대방에 예쁘게 인테리어를 적용했어!");
+            updateAllUI();
+        }
+
+        // --- 집중 공부 타이머 로직 ---
+        let timer = null;
+        let timeLeft = 10;
+        let isFocusing = false;
+
+        function toggleFocus() {
+            const btn = document.getElementById('timer-btn');
+            const room = document.getElementById('room');
+            const bubble = document.getElementById('bubble-chat');
+
+            if (!isFocusing) {
+                isFocusing = true;
+                room.classList.add('is-focusing'); 
+                btn.innerText = "🛑 집중 중단하기";
+                btn.style.background = "#7f5539";
+                bubble.innerText = "연필을 잡고 열심히 필기 중! 📝✏️";
+
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) { clearInterval(timer); completeFocus(); }
+                }, 1000);
+            } else {
+                clearInterval(timer);
+                isFocusing = false;
+                room.classList.remove('is-focusing');
+                updateAllUI();
+                btn.innerText = "📝 집중 공부 시작";
+                btn.style.background = "linear-gradient(135deg, #a98467, #adc178)";
+                bubble.innerText = "잠시 쉬는 시간~! 🐺";
+            }
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const secs = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${mins}:${secs}`;
+        }
+
+        function completeFocus() {
+            gameState.focusCount++;
+            gameState.coins += 20;
+            gameState.xp += 50; 
+
+            alert("🎉 대단해요! 집중 공부 완료 보상 지급!");
+
+            let neededXp = gameState.level * 100;
+            if (gameState.xp >= neededXp) {
+                gameState.xp -= neededXp;
+                gameState.level++;
+                alert(`✨ LEVEL UP! 레벨 ${gameState.level} 달성! 미션 난이도와 집중 시간이 늘어납니다!`);
+            }
+
+            isFocusing = false;
+            document.getElementById('room').classList.remove('is-focusing');
+            document.getElementById('timer-btn').innerText = "📝 집중 공부 시작";
+            document.getElementById('timer-btn').style.background = "linear-gradient(135deg, #a98467, #adc178)";
+            updateAllUI();
+        }
+
+        // --- 그룹 동기화 코드 로직 ---
+        function generateMyCode() {
+            const roomInfo = { userId: gameState.userId, level: gameState.level };
+            document.getElementById('my-code-display').innerText = btoa(JSON.stringify(roomInfo));
+        }
+        function copyMyCode() {
+            navigator.clipboard.writeText(document.getElementById('my-code-display').innerText).then(() => alert("📋 복사 완료!"));
+        }
+        function loadFriendCode() {
+            const input = document.getElementById('friend-code-input').value.trim();
+            try {
+                const info = JSON.parse(atob(input));
+                document.getElementById('bubble-chat').innerText = `Lv.${info.level} 친구 코드 인식 성공! 🐾`;
+                closeModal('group-modal');
+            } catch (e) { alert("잘못된 코드입니다."); }
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    </script>
+</body>
+</html>
