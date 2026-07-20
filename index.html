@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토끼의 감성 공부방 🐰</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-area">
+        <div class="header">
+            <div class="status-group">
+                <span class="level-badge" id="level-display">Lv.1</span>
+                <button class="level-reward-btn" onclick="showLevelRewardsInfo()" title="레벨업 보상 보기">🎁</button>
+                <div class="xp-bar-container"><div class="xp-bar" id="xp-bar"></div></div>
+            </div>
+            <div class="coin-display" id="coin-display">🪙 100</div>
+        </div>
+
+        <div class="timer-section">
+            <div class="timer-display" id="timer">00:10:00</div>
+            <div class="timer-setup" id="timer-setup">
+                <button onclick="adjustTargetTime(-10)">-10</button>
+                <span id="target-time-display">10분</span>
+                <button onclick="adjustTargetTime(10)">+10</button>
+            </div>
+        </div>
+
+        <div class="bunny-room" id="room">
+            <div class="room-bg-layer" id="room-bg-layer"></div>
+
+            <div class="room-window"></div>
+            <div class="room-clock"><span>🕒</span></div>
+
+            <div class="room-rug"></div>
+            <div class="room-desk">
+                <div class="desk-laptop"></div>
+                <div class="desk-cup"></div>
+            </div>
+            <div class="room-chair"></div>
+
+            <div class="character-container">
+                <span class="rabbit-emoji">🐰</span>
+                <div class="wearable-slot hat" id="wear-hat"></div>
+                <div class="wearable-slot acc" id="wear-acc"></div>
+            </div>
+
+            <div class="bubble" id="bubble-chat">오늘도 열공! 🐰</div>
+            <div class="room-floor-banner" id="equipped-banner">👗 기본 상태</div>
+        </div>
+
+        <div class="timer-btn-group">
+            <button class="timer-btn main-btn" id="timer-main-btn" onclick="handleMainTimerBtn()">집중 시작하기 ✨</button>
+            <button class="timer-btn stop-btn" id="timer-stop-btn" onclick="resetTimer()" style="display: none;">포기하기 🛑</button>
+        </div>
+
+        <div class="content-scroll-area">
+            <section id="screen-home" class="screen active">
+                <div class="mission-section">
+                    <div class="mission-title-bar">
+                        <span>오늘의 당근 미션 🥕</span>
+                        <span class="mission-status" id="mission-count">0/0 완료</span>
+                    </div>
+
+                    <div class="mission-input-group">
+                        <input type="text" id="custom-mission-input" placeholder="새 할 일/미션 입력..." maxlength="20">
+                        <button onclick="addCustomMission()">추가</button>
+                    </div>
+
+                    <div id="mission-list"></div>
+                </div>
+            </section>
+
+            <section id="screen-decor" class="screen">
+                <div class="item-grid" id="inventory-grid"></div>
+            </section>
+
+            <section id="screen-shop" class="screen">
+                <div class="shop-header">
+                    <button class="shop-pill active" id="tab-bg" onclick="switchShopTab('bg')">배경색</button>
+                    <button class="shop-pill" id="tab-acc" onclick="switchShopTab('acc')">장식품</button>
+                </div>
+                <div class="item-grid" id="shop-grid"></div>
+            </section>
+
+            <section id="screen-attendance" class="screen">
+                <div class="attendance-card">
+                    <div class="attendance-streak-header">
+                        🔥 <span id="streak-days">1</span>일 연속 출석!
+                    </div>
+                    <div class="attendance-sub-text">
+                        이번 달 총 <span id="monthly-count">1</span>회 출석 성공 🎉
+                    </div>
+                    <div class="reward-pills">
+                        <div class="reward-pill" id="reward-3">🎁 3일 (+20)</div>
+                        <div class="reward-pill locked" id="reward-7">🔒 7일 (+50)</div>
+                        <div class="reward-pill locked" id="reward-14">🔒 14일 (+100)</div>
+                    </div>
+                </div>
+
+                <div class="calendar-section">
+                    <div class="calendar-title">이번 달 출석 달력 📅</div>
+                    <div class="calendar-weekdays">
+                        <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+                    </div>
+                    <div class="calendar-grid" id="calendar"></div>
+                </div>
+            </section>
+
+            <section id="screen-settings" class="screen">
+                <div class="settings-title-header">⚙️ 설정 및 사용 관리</div>
+                
+                <div class="usage-card">
+                    <div class="usage-card-top">
+                        <div class="usage-info">
+                            <div class="usage-label">📊 오늘 실제 앱 사용 시간</div>
+                            <div class="usage-time-text" id="usage-time-display">0시간 0분 0초</div>
+                            <div class="usage-status"><span class="green-dot">●</span> 실시간 자동 측정 중...</div>
+                        </div>
+                        <div class="usage-circle-percent" id="usage-circle">0%</div>
+                    </div>
+                    <div class="usage-progress-bar-bg">
+                        <div class="usage-progress-bar-fill" id="usage-progress-bar"></div>
+                    </div>
+                </div>
+
+                <div class="alert-setting-card">
+                    <div class="alert-title">📢 경고 알림 기준 설정</div>
+                    <div class="alert-options">
+                        <button class="alert-option-btn active" id="alert-btn-30" onclick="setAlertThreshold(30)">
+                            <span>30분 후 알림</span>
+                            <span class="check-icon">✓</span>
+                        </button>
+                        <button class="alert-option-btn" id="alert-btn-60" onclick="setAlertThreshold(60)">
+                            <span>1시간 후 알림</span>
+                            <span class="check-icon">✓</span>
+                        </button>
+                        <button class="alert-option-btn" id="alert-btn-90" onclick="setAlertThreshold(90)">
+                            <span>1시간 30분 후 알림</span>
+                            <span class="check-icon">✓</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="button-group">
+            <button class="action-btn nav-home active" onclick="showScreen('home')">🏠<br>홈</button>
+            <button class="action-btn nav-decor" onclick="showScreen('decor')">🎒<br>보관함</button>
+            <button class="action-btn nav-shop" onclick="showScreen('shop')">🏪<br>코인숍</button>
+            <button class="action-btn nav-attendance" onclick="showScreen('attendance')">📅<br>출석</button>
+            <button class="action-btn nav-settings" onclick="showScreen('settings')">⚙️<br>설정</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
