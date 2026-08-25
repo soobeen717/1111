@@ -3,1008 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지식의 정원 - 감성 공부방 🌿</title>
+    <title>Firebase 연동 앱 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-        }
-
-        body {
-            background-color: #eef2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .game-area {
-            width: 380px;
-            height: 740px;
-            background: #ffffff;
-            border-radius: 28px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.12);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* 로그인 / 회원가입 오버레이 */
-        .auth-overlay {
-            position: absolute;
-            inset: 0;
-            background: #ffffff;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
-        }
-
-        .auth-card {
-            width: 100%;
-            text-align: center;
-        }
-
-        .auth-card h2 {
-            font-size: 1.4rem;
-            color: #1e293b;
-            margin-bottom: 6px;
-        }
-
-        .auth-card p {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 20px;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .auth-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .auth-btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .auth-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .auth-btn-primary {
-            background: #10b981;
-            color: white;
-        }
-
-        .auth-btn-secondary {
-            background: #e2e8f0;
-            color: #475569;
-        }
-
-        /* 상단 스탯 */
-        .header {
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .status-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-
-        .level-badge {
-            background: #10b981;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .level-reward-btn {
-            border: none;
-            background: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-        }
-
-        .xp-bar-container {
-            flex: 0.8;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .xp-bar {
-            height: 100%;
-            background: #10b981;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .coin-display {
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #f59e0b;
-        }
-
-        /* 타이머 섹션 */
-        .timer-section {
-            padding: 10px 16px;
-            text-align: center;
-            background: #fafafa;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .timer-display {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #1e293b;
-            letter-spacing: 1px;
-        }
-
-        .timer-setup {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .timer-setup button {
-            background: #e2e8f0;
-            border: none;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        #target-time-display {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #475569;
-        }
-
-        /* 식물 성장 룸 */
-        .plant-room {
-            height: 190px;
-            background-color: #f7f3e9;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s;
-        }
-
-        .room-bg-layer {
-            position: absolute;
-            font-size: 5rem;
-            opacity: 0.2;
-            pointer-events: none;
-        }
-
-        .plant-container {
-            position: relative;
-            width: 110px;
-            height: 110px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-        }
-
-        #plant-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .wearable-slot {
-            position: absolute;
-            font-size: 1.6rem;
-        }
-
-        .wearable-slot.hat {
-            top: -12px;
-        }
-
-        .wearable-slot.acc {
-            bottom: 4px;
-            right: -8px;
-        }
-
-        .bubble {
-            position: absolute;
-            top: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 5px 12px;
-            border-radius: 14px;
-            font-size: 0.75rem;
-            color: #334155;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        .room-floor-banner {
-            position: absolute;
-            bottom: 6px;
-            font-size: 0.75rem;
-            color: #64748b;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 2px 10px;
-            border-radius: 10px;
-        }
-
-        /* 타이머 제어 버튼 */
-        .timer-btn-group {
-            padding: 10px 16px;
-            display: flex;
-            gap: 8px;
-            background: #ffffff;
-        }
-
-        .timer-btn {
-            flex: 1;
-            border: none;
-            padding: 10px 0;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .main-btn {
-            background: #10b981;
-            color: white;
-        }
-
-        .stop-btn {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* 화면 스크롤 영역 */
-        .content-scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background: #ffffff;
-        }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        /* 미션 섹션 */
-        .mission-title-bar {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
-
-        .mission-input-group {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-
-        .mission-input-group input {
-            flex: 1;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 8px 10px;
-            font-size: 0.8rem;
-            outline: none;
-        }
-
-        .mission-input-group button {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 0 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .mission-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 8px 12px;
-            border-radius: 10px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-        }
-
-        .claim-btn {
-            border: none;
-            background: #10b981;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        .claim-btn.done {
-            background: #94a3b8;
-        }
-
-        .delete-btn {
-            border: none;
-            background: none;
-            color: #94a3b8;
-            margin-left: 4px;
-            cursor: pointer;
-        }
-
-        /* 그리드 레이아웃 (보관함 및 상점) */
-        .item-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .item-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .item-icon {
-            font-size: 2rem;
-        }
-
-        .item-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .item-btn {
-            width: 100%;
-            border: none;
-            padding: 6px 0;
-            border-radius: 8px;
-            background: #10b981;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .item-btn.equipped {
-            background: #ef4444;
-        }
-
-        .item-btn.bought {
-            background: #cbd5e1;
-            color: #64748b;
-            cursor: default;
-        }
-
-        /* 상점 탭 버튼 */
-        .shop-header {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .shop-pill {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-        .shop-pill.active {
-            background: #10b981;
-            color: white;
-            border-color: #10b981;
-            font-weight: bold;
-        }
-
-        /* 출석 및 주간 리포트 */
-        .attendance-card, .weekly-growth-card, .usage-card, .alert-setting-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-
-        .attendance-streak-header {
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: #1e293b;
-        }
-
-        .attendance-sub-text {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        .reward-pills {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .reward-pill {
-            font-size: 0.7rem;
-            background: #d1fae5;
-            color: #065f46;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-
-        .reward-pill.locked {
-            background: #e2e8f0;
-            color: #64748b;
-        }
-
-        .calendar-title {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #1e293b;
-            margin-bottom: 6px;
-        }
-
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-bottom: 4px;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            text-align: center;
-        }
-
-        .day-cell {
-            padding: 6px 0;
-            font-size: 0.75rem;
-            border-radius: 6px;
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-        }
-
-        .day-cell.checked {
-            background: #10b981;
-            color: white;
-            font-weight: bold;
-        }
-
-        .day-cell.today {
-            border: 2px solid #f59e0b;
-        }
-
-        .weekly-chart {
-            display: flex;
-            height: 90px;
-            align-items: flex-end;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .chart-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
-        }
-
-        .bars-wrap {
-            display: flex;
-            gap: 2px;
-            align-items: flex-end;
-            height: 100%;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .bar {
-            width: 6px;
-            border-radius: 3px 3px 0 0;
-        }
-
-        .bar.last-week {
-            background: #cbd5e1;
-        }
-
-        .bar.this-week {
-            background: #10b981;
-        }
-
-        .day-label {
-            font-size: 0.65rem;
-            color: #64748b;
-            margin-top: 4px;
-        }
-
-        /* 설정 화면 */
-        .settings-title-header {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #1e293b;
-            margin-bottom: 12px;
-        }
-
-        .usage-card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .usage-label {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .usage-time-text {
-            font-size: 1rem;
-            font-weight: bold;
-            color: #1e293b;
-        }
-
-        .usage-status {
-            font-size: 0.65rem;
-            color: #10b981;
-        }
-
-        .usage-circle-percent {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #10b981;
-        }
-
-        .usage-progress-bar-bg {
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .usage-progress-bar-fill {
-            height: 100%;
-            background: #10b981;
-            width: 0%;
-        }
-
-        .alert-title {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #1e293b;
-            margin-bottom: 8px;
-        }
-
-        .alert-options {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .alert-option-btn {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-
-        .alert-option-btn.active {
-            border-color: #10b981;
-            background: #ecfdf5;
-            color: #047857;
-            font-weight: bold;
-        }
-
-        .check-icon {
-            display: none;
-        }
-
-        .alert-option-btn.active .check-icon {
-            display: inline;
-        }
-
-        /* 하단 네비게이션 */
-        .button-group {
-            display: flex;
-            border-top: 1px solid #f1f5f9;
-            background: #ffffff;
-        }
-
-        .action-btn {
-            flex: 1;
-            border: none;
-            background: none;
-            padding: 8px 0;
-            font-size: 0.7rem;
-            color: #94a3b8;
-            cursor: pointer;
-            line-height: 1.3;
-        }
-
-        .action-btn.active {
-            color: #10b981;
-            font-weight: bold;
-        }
-
-        /* 모달 및 팝업 */
-        .level-up-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .level-up-content {
-            background: white;
-            padding: 20px;
-            border-radius: 18px;
-            text-align: center;
-            width: 80%;
-        }
-
-        .modal-close-btn {
-            margin-top: 12px;
-            padding: 8px 16px;
-            border: none;
-            background: #10b981;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .roadmap-popup-content {
-            background: white;
-            padding: 16px;
-            border-radius: 18px;
-            width: 85%;
-            max-height: 70%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .roadmap-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .close-x-btn {
-            border: none;
-            background: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-        }
-
-        .roadmap-scroll-body {
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .roadmap-step {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-
-        .roadmap-step.achieved {
-            opacity: 1;
-        }
-
-        .roadmap-step.current {
-            font-weight: bold;
-        }
-
-        .roadmap-node {
-            width: 10px;
-            height: 10px;
-            background: #cbd5e1;
-            border-radius: 50%;
-        }
-
-        .roadmap-step.achieved .roadmap-node {
-            background: #10b981;
-        }
-
-        .roadmap-card {
-            background: #f8fafc;
-            padding: 8px 12px;
-            border-radius: 10px;
-            flex: 1;
-            font-size: 0.75rem;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { padding: 20px; background: #f4f4f9; max-width: 500px; margin: 0 auto; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { font-size: 1.1rem; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        button { padding: 6px 12px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        input, select { padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 5px; width: 100%; }
+        .btn-amber { background: #ffc107; color: #000; }
+        .btn-green { background: #28a745; color: white; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="game-area">
-        <!-- 0. 로그인 / 회원가입 레이어 -->
-        <div class="auth-overlay" id="auth-overlay">
-            <div class="auth-card">
-                <h2>🌿 지식의 정원</h2>
-                <p>공부 시간을 기록하고 나만의 식물을 키워보세요!</p>
-                <div class="auth-form">
-                    <input type="email" id="auth-email" class="auth-input" placeholder="이메일 계정">
-                    <input type="password" id="auth-pw" class="auth-input" placeholder="비밀번호 (6자리 이상)">
-                    <div class="auth-btn-group">
-                        <button class="auth-btn auth-btn-secondary" onclick="handleSignUp()">회원가입</button>
-                        <button class="auth-btn auth-btn-primary" onclick="handleLogin()">로그인</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 상단 스탯 프로필 -->
-        <div class="header">
-            <div class="status-group">
-                <span class="level-badge" id="level-display">Lv.1</span>
-                <button class="level-reward-btn" onclick="showLevelRewardsInfo()" title="성장 로드맵 보기">🎁</button>
-                <div class="xp-bar-container"><div class="xp-bar" id="xp-bar"></div></div>
-            </div>
-            <div class="coin-display" id="coin-display">🪙 100</div>
-        </div>
-
-        <!-- 타이머 섹션 -->
-        <div class="timer-section">
-            <div class="timer-display" id="timer">00:10:00</div>
-            <div class="timer-setup" id="timer-setup">
-                <button onclick="adjustTargetTime(-10)">-10m</button>
-                <button onclick="adjustTargetTime(-1)">-1m</button>
-                <span id="target-time-display">10분</span>
-                <button onclick="adjustTargetTime(1)">+1m</button>
-                <button onclick="adjustTargetTime(10)">+10m</button>
-            </div>
-        </div>
-
-        <!-- 식물 성장 룸 -->
-        <div class="plant-room" id="room">
-            <div class="room-bg-layer" id="room-bg-layer"></div>
-            <div class="room-window"></div>
-            <div class="room-clock"><span>🕒</span></div>
-
-            <!-- 식물 오브젝트 -->
-            <div class="plant-container">
-                <img id="plant-img" src="lv1.png" alt="성장하는 식물">
-                <div class="wearable-slot hat" id="wear-hat"></div>
-                <div class="wearable-slot acc" id="wear-acc"></div>
-            </div>
-
-            <div class="bubble" id="bubble-chat">오늘도 같이 무럭무럭 자라요! 🌱</div>
-            <div class="room-floor-banner" id="equipped-banner">🪴 씨앗 준비 단계</div>
-        </div>
-
-        <!-- 타이머 제어 버튼 -->
-        <div class="timer-btn-group">
-            <button class="timer-btn main-btn" id="timer-main-btn" onclick="handleMainTimerBtn()">집중 시작하기 ✨</button>
-            <button class="timer-btn stop-btn" id="timer-stop-btn" onclick="resetTimer()" style="display: none;">포기하기 🛑</button>
-        </div>
-
-        <!-- 스크롤 콘텐츠 영역 -->
-        <div class="content-scroll-area">
-            <!-- 홈: 미션 목록 -->
-            <section id="screen-home" class="screen active">
-                <div class="mission-section">
-                    <div class="mission-title-bar">
-                        <span>오늘의 공부 미션 🌿</span>
-                        <span class="mission-status" id="mission-count">0/0 완료</span>
-                    </div>
-
-                    <div class="mission-input-group">
-                        <input type="text" id="custom-mission-input" placeholder="새 할 일/미션 입력..." maxlength="20">
-                        <button onclick="addCustomMission()">추가</button>
-                    </div>
-
-                    <div id="mission-list"></div>
-                </div>
-            </section>
-
-            <!-- 보관함 -->
-            <section id="screen-decor" class="screen">
-                <div class="item-grid" id="inventory-grid"></div>
-            </section>
-
-            <!-- 코인숍 -->
-            <section id="screen-shop" class="screen">
-                <div class="shop-header">
-                    <button class="shop-pill active" id="tab-bg" onclick="switchShopTab('bg')">배경 테마</button>
-                    <button class="shop-pill" id="tab-acc" onclick="switchShopTab('acc')">화분 장식</button>
-                </div>
-                <div class="item-grid" id="shop-grid"></div>
-            </section>
-
-            <!-- 출석 및 리포트 -->
-            <section id="screen-attendance" class="screen">
-                <div class="attendance-card">
-                    <div class="attendance-streak-header">
-                        🔥 <span id="streak-days">1</span>일 연속 물주기 성공!
-                    </div>
-                    <div class="attendance-sub-text">
-                        이번 달 총 <span id="monthly-count">1</span>회 출석 🎉
-                    </div>
-                    <div class="reward-pills">
-                        <div class="reward-pill" id="reward-3">🎁 3일 (+20)</div>
-                        <div class="reward-pill locked" id="reward-7">🔒 7일 (+50)</div>
-                        <div class="reward-pill locked" id="reward-14">🔒 14일 (+100)</div>
-                    </div>
-                </div>
-
-                <div class="weekly-growth-card">
-                    <div class="growth-header">
-                        <span>📈 주간 집중 성장 리포트</span>
-                    </div>
-                    <div class="growth-summary" id="growth-summary">
-                        🚀 집중 시간이 지날수록 꽃이 피어납니다!
-                    </div>
-                    <div class="chart-legend" style="display: flex; gap: 10px; font-size: 0.75rem; color: #64748b; margin-top: 5px;">
-                        <span class="legend-item"><span style="display:inline-block; width:8px; height:8px; background:#cbd5e1; margin-right:4px;"></span>지난주</span>
-                        <span class="legend-item"><span style="display:inline-block; width:8px; height:8px; background:#10b981; margin-right:4px;"></span>이번주</span>
-                    </div>
-                    <div class="weekly-chart" id="weekly-chart"></div>
-                </div>
-
-                <div class="calendar-section" style="margin-top: 15px;">
-                    <div class="calendar-title">이번 달 출석 달력 📅</div>
-                    <div class="calendar-weekdays">
-                        <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
-                    </div>
-                    <div class="calendar-grid" id="calendar"></div>
-                </div>
-            </section>
-
-            <!-- 설정 및 사용 시간 -->
-            <section id="screen-settings" class="screen">
-                <div class="settings-title-header">⚙️ 설정 및 학습 측정</div>
-                
-                <div class="usage-card">
-                    <div class="usage-card-top">
-                        <div class="usage-info">
-                            <div class="usage-label">📊 오늘 공부방 이용 시간</div>
-                            <div class="usage-time-text" id="usage-time-display">0시간 0분 0초</div>
-                            <div class="usage-status"><span class="green-dot">●</span> 실시간 측정 중...</div>
-                        </div>
-                        <div class="usage-circle-percent" id="usage-circle">0%</div>
-                    </div>
-                    <div class="usage-progress-bar-bg">
-                        <div class="usage-progress-bar-fill" id="usage-progress-bar"></div>
-                    </div>
-                </div>
-
-                <div class="alert-setting-card">
-                    <div class="alert-title">📢 목표 알림 기준</div>
-                    <div class="alert-options">
-                        <button class="alert-option-btn active" id="alert-btn-30" onclick="setAlertThreshold(30)">
-                            <span>30분 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                        <button class="alert-option-btn" id="alert-btn-60" onclick="setAlertThreshold(60)">
-                            <span>1시간 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                        <button class="alert-option-btn" id="alert-btn-90" onclick="setAlertThreshold(90)">
-                            <span>1시간 30분 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                    </div>
-                </div>
-
-                <button onclick="handleLogout()" style="width: 100%; padding: 10px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;">
-                    로그아웃
-                </button>
-            </section>
-        </div>
-
-        <!-- 하단 네비게이션 -->
-        <div class="button-group">
-            <button class="action-btn nav-home active" onclick="showScreen('home')">🏠<br>홈</button>
-            <button class="action-btn nav-decor" onclick="showScreen('decor')">🎒<br>보관함</button>
-            <button class="action-btn nav-shop" onclick="showScreen('shop')">🏪<br>코인숍</button>
-            <button class="action-btn nav-attendance" onclick="showScreen('attendance')">📅<br>출석</button>
-            <button class="action-btn nav-settings" onclick="showScreen('settings')">⚙️<br>설정</button>
-        </div>
-    </div>
-
-    <!-- 로드맵 모달 -->
-    <div id="roadmap-modal" class="level-up-overlay" style="display: none;">
-        <div class="roadmap-popup-content">
-            <div class="roadmap-header">
-                <h3>🏆 식물 성장 로드맵</h3>
-                <button class="close-x-btn" onclick="closeRoadmapModal()">✕</button>
-            </div>
-            <div class="roadmap-scroll-body">
-                <div class="roadmap-timeline" id="roadmap-list"></div>
+    <!-- 0. 로그인 / 회원가입 카드 -->
+    <div class="card" id="auth-card">
+        <h2>🔒 로그인 / 회원가입</h2>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <input type="email" id="auth-email" placeholder="이메일 입력">
+            <input type="password" id="auth-pw" placeholder="비밀번호 입력">
+            <div class="row" style="margin-top: 5px;">
+                <button onclick="handleSignUp()" style="width: 48%;">회원가입</button>
+                <button onclick="handleLogin()" class="btn-green" style="width: 48%;">로그인</button>
             </div>
         </div>
     </div>
 
-    <!-- 레벨업 모달 -->
-    <div id="level-up-modal" class="level-up-overlay" style="display: none;">
-        <div class="level-up-content">
-            <div style="font-size: 2rem; margin-bottom: 5px;">✨🎉✨</div>
-            <h2 class="modal-title">LEVEL UP!</h2>
-            <div class="modal-level-badge" id="modal-level-num">Lv.2</div>
-            <div class="modal-reward-box">
-                <p class="reward-label" style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">성장 완료 보상</p>
-                <div id="modal-reward-item" class="modal-item-icon" style="font-size: 2.5rem; margin: 8px 0;">🪙</div>
-                <div id="modal-reward-text" class="modal-item-name" style="font-size: 0.9rem; font-weight: bold; color: #1e293b;">50 코인</div>
+    <!-- 로그인 후 표시될 메인 앱 영역 -->
+    <div id="app-content" class="hidden">
+        
+        <!-- 사용자 정보 & 닉네임 설정 카드 -->
+        <div class="card">
+            <div class="row" style="margin-bottom: 10px;">
+                <span>👋 <strong id="user-nickname-display">사용자</strong> 님</span>
+                <button onclick="handleLogout()" style="background:#6c757d;">로그아웃</button>
             </div>
-            <button class="modal-close-btn" onclick="closeLevelUpModal()">확인 (Enter)</button>
+            <div class="row" style="gap: 5px; margin-bottom: 0;">
+                <input type="text" id="nickname-input" placeholder="새 닉네임 입력" style="margin-bottom:0;">
+                <button onclick="updateNickname()" class="btn-amber" style="white-space: nowrap;">닉네임 변경</button>
+            </div>
         </div>
+
+        <!-- 1. 출석 체크 -->
+        <div class="card">
+            <h2>📅 연속 출석 체크</h2>
+            <div class="row">
+                <span>연속 출석: <strong id="streak-count">0</strong>일째</span>
+                <button id="attendance-btn" onclick="checkAttendance()">오늘 출석하기</button>
+            </div>
+        </div>
+
+        <!-- 2. 집중 타이머 -->
+        <div class="card">
+            <h2>⏱️ 집중 타이머</h2>
+            <div class="row" style="justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 10px 0;">
+                <span id="timer-display">25:00</span>
+            </div>
+            <div class="row" style="justify-content: center; gap: 8px;">
+                <button onclick="toggleTimer()" id="timer-btn">시작</button>
+                <button onclick="resetTimer()" style="background:#dc3545;">리셋</button>
+                <button onclick="addFocusTime(1)" class="btn-amber">+1분 DB 즉시 적립</button>
+            </div>
+        </div>
+
+        <!-- 3. 주간 집중 시간 그래프 -->
+        <div class="card">
+            <h2>📊 주간 집중 시간 (분)</h2>
+            <canvas id="weeklyChart" height="200"></canvas>
+        </div>
+
+        <!-- 4. 개인 스터디 그룹 관리 -->
+        <div class="card">
+            <h2>👥 스터디 그룹 관리</h2>
+            
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
+                <div style="margin-bottom: 8px;">
+                    <input type="text" id="new-group-name" placeholder="새 스터디 그룹 이름">
+                    <button onclick="createGroup()" class="btn-green" style="width: 100%;">새 그룹 만들기</button>
+                </div>
+                <div>
+                    <input type="text" id="join-group-id" placeholder="초대 코드(그룹 ID) 입력">
+                    <button onclick="joinGroup()" style="width: 100%;">코드로 기존 그룹 참여</button>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 4px;">내 그룹 목록 보기</label>
+                <select id="group-select" onchange="onGroupSelected()">
+                    <option value="">참여 중인 그룹이 없습니다</option>
+                </select>
+            </div>
+
+            <div id="selected-group-view" class="hidden" style="margin-top: 15px; background: #fafafa; padding: 10px; border-radius: 6px;">
+                <div class="row">
+                    <strong id="current-group-name" style="color: #007bff;">-</strong>
+                    <button onclick="leaveGroup()" style="background:#dc3545; font-size: 0.8rem;">그룹 탈퇴</button>
+                </div>
+                <p style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">
+                    초대 코드: <span id="current-group-id" style="font-weight: bold; color: #333;">-</span>
+                </p>
+                <div id="group-member-list">
+                    <p style="color:#888; font-size: 0.85rem;">멤버 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Firebase SDK 모듈 로드 -->
@@ -1012,10 +120,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
             from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } 
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, arrayUnion, arrayRemove } 
             from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase 프로젝트 설정
         const firebaseConfig = {
             apiKey: "AIzaSyDRbaKkPkDt8XIu89AGSza5E0RxGdCXWLw",
             authDomain: "focus1-13f51.firebaseapp.com",
@@ -1030,168 +137,54 @@
         const db = getFirestore(app);
 
         let currentUser = null;
-        let unsubscribeUser = null;
+        let weeklyChart = null;
+        let timerState = { remainingSeconds: 25 * 60, isRunning: false, interval: null };
+        let unsubscribeGroup = null;
 
-        // 초기 기본 상태 데이터
-        const defaultState = {
-            level: 1,
-            xp: 0,
-            maxXp: 120,
-            coins: 100,
-            equipped: { hat: "none", acc: "none", bg: "none" },
-            inventory: ["hat_party", "acc_ribbon"],
-            currentShopTab: "bg",
-            usageSeconds: 0,
-            alertThresholdMinutes: 30,
-            targetFocusMinutes: 10,
-            remainingSeconds: 600,
-            attendance: {
-                streak: 1,
-                monthlyCount: 1,
-                checkedToday: true,
-                checkedDays: [new Date().getDate()]
-            },
-            weeklyStats: {
-                lastWeek: [40, 60, 30, 90, 50, 120, 80],
-                thisWeek: [50, 75, 45, 110, 80, 140, 0]
-            },
-            missions: [
-                { id: 1, title: "아침 기상 후 물 한 잔 마시기 💧", completed: false },
-                { id: 2, title: "스마트폰 내려두고 스트레칭 🧘", completed: false }
-            ]
-        };
+        // 한국 로컬 날짜 문자열 반환 (YYYY-MM-DD)
+        function getLocalDateString(dateObj = new Date()) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-        window.gameState = JSON.parse(JSON.stringify(defaultState));
-        window.gameState.timerInterval = null;
-        window.gameState.isTimerRunning = false;
-        window.gameState.isTimerPaused = false;
-
-        // 레벨 보상 및 아이템 정보 정의
-        window.levelRewards = {
-            1: { id: "bg_default", name: "시작의 공간", icon: "🏠", type: "bg" },
-            2: { id: "hat_crown", name: "왕관", icon: "👑", type: "hat" },
-            3: { id: "bg_galaxy", name: "우주 속으로", icon: "🌌", type: "bg", color: "#1a1c2e" },
-            4: { id: "acc_monocle", name: "기사의 혜안", icon: "🧐", type: "acc" },
-            5: { id: "bg_palace", name: "황금 궁전", icon: "🏰", type: "bg", color: "#fef3c7" },
-            6: { id: "hat_angel", name: "천사 고리", icon: "😇", type: "hat" },
-            7: { id: "bg_candy", name: "달콤 캔디랜드", icon: "🍭", type: "bg", color: "#fce7f3" },
-            8: { id: "acc_magic_wand", name: "마법 요술봉", icon: "🪄", type: "acc" },
-            9: { id: "hat_dragon", name: "아기용 모자", icon: "🐲", type: "hat" },
-            10: { id: "bg_rainbow_castle", name: "꿈의 무지개 성", icon: "🌈", type: "bg", color: "#ecfdf5" }
-        };
-
-        window.wearableItems = [
-            { id: "hat_party", name: "꼬마 고깔모자", icon: "🎪", type: "hat" },
-            { id: "acc_ribbon", name: "빨간 나비리본", icon: "🎀", type: "acc" },
-            { id: "hat_flower", name: "노란 꽃모자", icon: "🌼", type: "hat" },
-            { id: "acc_necklace", name: "진주 목걸이", icon: "📿", type: "acc" },
-            { id: "dec_lamp", name: "감성 스탠드", icon: "💡", type: "acc" },
-            { id: "dec_book", name: "마음의 양식", icon: "📚", type: "acc" },
-            { id: "dec_pencil", name: "행운의 연필", icon: "✏️", type: "acc" },
-            { id: "acc_glasses", name: "지적인 안경", icon: "👓", type: "acc" },
-            { id: "hat_ribbon", name: "핑크 리본모자", icon: "🎀", type: "hat" },
-            { id: "acc_bowtie", name: "하늘색 보우타이", icon: "👔", type: "acc" },
-            levelRewards[2], levelRewards[4], levelRewards[6], levelRewards[8], levelRewards[9]
-        ];
-
-        window.backgroundItems = [
-            { id: "bg_default", name: "기본 공간", icon: "", type: "bg", color: "#f7f3e9" },
-            { id: "bg_ocean", name: "바닷속 세계", icon: "🐠", type: "bg", color: "#e0f2fe" },
-            { id: "bg_sparkle_forest", name: "반짝이는 숲", icon: "✨", type: "bg", color: "#dcfce7" },
-            { id: "bg_night", name: "별빛 밤하늘", icon: "🌙", type: "bg", color: "#1e293b" },
-            { id: "bg_rainbow", name: "무지개 동산", icon: "🌈", type: "bg", color: "#fef9c3" },
-            { id: "bg_sky", name: "푸른 하늘", icon: "☁️", type: "bg", color: "#bae6fd" },
-            levelRewards[3], levelRewards[5], levelRewards[7], levelRewards[10]
-        ];
-
-        window.allItems = [...wearableItems, ...backgroundItems];
-
-        window.shopItems = {
-            bg: [
-                { id: "bg_ocean", name: "바닷속 세계", icon: "🐠", price: 300, type: "bg", color: "#e0f2fe" },
-                { id: "bg_sparkle_forest", name: "반짝이는 숲", icon: "✨", price: 300, type: "bg", color: "#dcfce7" },
-                { id: "bg_sky", name: "푸른 하늘", icon: "☁️", price: 150, type: "bg", color: "#bae6fd" },
-                { id: "bg_night", name: "별빛 밤하늘", icon: "🌙", price: 200, type: "bg", color: "#1e293b" },
-                { id: "bg_rainbow", name: "무지개 동산", icon: "🌈", price: 250, type: "bg", color: "#fef9c3" }
-            ],
-            acc: [
-                { id: "hat_flower", name: "노란 꽃모자", icon: "🌼", price: 180, type: "hat" },
-                { id: "acc_necklace", name: "진주 목걸이", icon: "📿", price: 220, type: "acc" },
-                { id: "dec_lamp", name: "감성 스탠드", icon: "💡", price: 150, type: "acc" },
-                { id: "dec_book", name: "마음의 양식", icon: "📚", price: 100, type: "acc" },
-                { id: "dec_pencil", name: "행운의 연필", icon: "✏️", price: 80, type: "acc" },
-                { id: "acc_glasses", name: "지적인 안경", icon: "👓", price: 140, type: "acc" }
-            ]
-        };
-
-        // 인증 상태 리스너
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('auth-overlay').classList.add('hidden');
-                listenDatabase(user.uid);
+                document.getElementById('auth-card').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                
+                initChart();
+                listenUserData(user.uid);
             } else {
                 currentUser = null;
-                document.getElementById('auth-overlay').classList.remove('hidden');
-                if (unsubscribeUser) unsubscribeUser();
+                document.getElementById('auth-card').classList.remove('hidden');
+                document.getElementById('app-content').classList.add('hidden');
+                if (unsubscribeGroup) unsubscribeGroup();
             }
         });
 
-        // Firestore 실시간 모니터링
-        function listenDatabase(uid) {
-            const userRef = doc(db, "users", uid);
-            unsubscribeUser = onSnapshot(userRef, async (snap) => {
-                if (snap.exists()) {
-                    const dbData = snap.data();
-                    Object.assign(gameState, dbData);
-                    updateAllUI();
-                    renderAttendance();
-                } else {
-                    // 최초 로그인 시 DB 데이터 생성
-                    await setDoc(userRef, defaultState);
-                }
-            });
-        }
-
-        // DB에 상태 즉시 동기화
-        async function saveToDB() {
-            if (!currentUser) return;
-            const saveData = {
-                level: gameState.level,
-                xp: gameState.xp,
-                maxXp: gameState.maxXp,
-                coins: gameState.coins,
-                equipped: gameState.equipped,
-                inventory: gameState.inventory,
-                usageSeconds: gameState.usageSeconds,
-                alertThresholdMinutes: gameState.alertThresholdMinutes,
-                targetFocusMinutes: gameState.targetFocusMinutes,
-                attendance: gameState.attendance,
-                weeklyStats: gameState.weeklyStats,
-                missions: gameState.missions
-            };
-            try {
-                await updateDoc(doc(db, "users", currentUser.uid), saveData);
-            } catch (err) {
-                console.error("DB 저장 오류:", err);
-            }
-        }
-
-        // 회원가입 & 로그인 기능
         window.handleSignUp = async function() {
             const email = document.getElementById('auth-email').value;
             const pw = document.getElementById('auth-pw').value;
-            if (!email || !pw) return alert("이메일과 비밀번호를 입력해주세요.");
             try {
-                await createUserWithEmailAndPassword(auth, email, pw);
-                alert("🎉 회원가입 성공! 반가워요!");
+                const res = await createUserWithEmailAndPassword(auth, email, pw);
+                const defaultNickname = email.split('@')[0];
+                await setDoc(doc(db, "users", res.user.uid), {
+                    nickname: defaultNickname,
+                    attendanceStreak: 0,
+                    lastAttendanceDate: "",
+                    weeklyFocusMinutes: [0, 0, 0, 0, 0, 0, 0],
+                    groups: []
+                });
+                alert("회원가입 완료 및 로그인 되었습니다!");
             } catch (err) { alert("회원가입 실패: " + err.message); }
         };
 
         window.handleLogin = async function() {
             const email = document.getElementById('auth-email').value;
             const pw = document.getElementById('auth-pw').value;
-            if (!email || !pw) return alert("이메일과 비밀번호를 입력해주세요.");
             try {
                 await signInWithEmailAndPassword(auth, email, pw);
             } catch (err) { alert("로그인 실패: " + err.message); }
@@ -1201,439 +194,285 @@
             signOut(auth);
         };
 
-        // UI 업데이트
-        window.updateAllUI = function() {
-            const lvlDisp = document.getElementById('level-display');
-            const coinDisp = document.getElementById('coin-display');
-            if (lvlDisp) lvlDisp.innerText = `Lv.${gameState.level}`;
-            if (coinDisp) coinDisp.innerText = `🪙 ${gameState.coins}`;
-           
-            const xpPercent = Math.min(100, Math.floor((gameState.xp / gameState.maxXp) * 100));
-            const xpBar = document.getElementById('xp-bar');
-            if (xpBar) xpBar.style.width = `${xpPercent}%`;
-            
-            const plantImg = document.getElementById('plant-img');
-            if (plantImg) {
-                const plantStage = Math.min(gameState.level, 6);
-                plantImg.src = `lv${plantStage}.png`;
-            }
+        window.updateNickname = async function() {
+            const newNick = document.getElementById('nickname-input').value.trim();
+            if (!newNick) return alert("변경할 닉네임을 입력해주세요.");
 
-            const hat = allItems.find(i => i.id === gameState.equipped.hat);
-            const acc = allItems.find(i => i.id === gameState.equipped.acc);
-            const bg = backgroundItems.find(i => i.id === gameState.equipped.bg);
-            
-            const wearHat = document.getElementById('wear-hat');
-            const wearAcc = document.getElementById('wear-acc');
-            if (wearHat) wearHat.innerText = hat ? hat.icon : "";
-            if (wearAcc) wearAcc.innerText = acc ? acc.icon : "";
-           
-            const room = document.getElementById('room');
-            const bgLayer = document.getElementById('room-bg-layer');
-            if (room) {
-                if (bg) {
-                    room.style.backgroundColor = bg.color;
-                    if (bgLayer) bgLayer.innerText = bg.icon || "";
-                } else {
-                    room.style.backgroundColor = "#f7f3e9";
-                    if (bgLayer) bgLayer.innerText = "";
-                }
-            }
-
-            const equippedHatText = hat ? hat.name : '';
-            const equippedAccText = acc ? acc.name : '';
-            const equippedText = [equippedHatText, equippedAccText].filter(Boolean).join(', ');
-            const banner = document.getElementById('equipped-banner');
-            if (banner) banner.innerText = equippedText ? `👗 착용: ${equippedText}` : "🪴 기본 식물 공간";
-            
-            renderMissions();
-            updateUsageDisplay();
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    nickname: newNick
+                });
+                document.getElementById('nickname-input').value = '';
+                alert("닉네임이 성공적으로 변경되었습니다!");
+            } catch (err) { alert("닉네임 변경 실패: " + err.message); }
         };
 
-        window.gainXP = function(amount) {
-            gameState.xp += amount;
-            while (gameState.xp >= gameState.maxXp) {
-                gameState.xp -= gameState.maxXp;
-                gameState.level++;
-                gameState.maxXp = Math.round(gameState.maxXp * 1.8);
-               
-                let rewardCoin = 50 + (gameState.level * 10);
-                gameState.coins += rewardCoin;
-                const specialReward = levelRewards[gameState.level];
-                if (specialReward && !gameState.inventory.includes(specialReward.id)) {
-                    gameState.inventory.push(specialReward.id);
-                }
-                openLevelUpModal(gameState.level, rewardCoin, specialReward);
-            }
-            updateAllUI();
-            saveToDB();
-        };
-
-        window.showScreen = function(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-           
-            const targetScreen = document.getElementById('screen-' + id);
-            if (targetScreen) targetScreen.classList.add('active');
-            const activeNavBtn = document.querySelector(`.nav-${id}`);
-            if (activeNavBtn) activeNavBtn.classList.add('active');
-            
-            if (id === 'decor') renderInventory();
-            if (id === 'shop') renderShop();
-            if (id === 'attendance') renderAttendance();
-        };
-
-        window.renderInventory = function() {
-            const grid = document.getElementById('inventory-grid');
-            if (!grid) return;
-            grid.innerHTML = "";
-            const userOwnedItems = gameState.inventory.map(itemId => allItems.find(i => i.id === itemId)).filter(Boolean);
-            if (userOwnedItems.length === 0) {
-                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #888; padding: 30px;">보관함이 비어있습니다. 코인숍에서 아이템을 구매해보세요!</div>`;
-                return;
-            }
-            userOwnedItems.forEach(item => {
-                const isEquipped = gameState.equipped[item.type] === item.id;
-                const div = document.createElement('div');
-                div.className = "item-card";
-                div.innerHTML = `
-                    <div class="item-icon">${item.icon || "🎁"}</div>
-                    <div class="item-name">${item.name}</div>
-                    <button class="item-btn ${isEquipped ? 'equipped' : ''}" onclick="toggleEquip('${item.id}')">
-                        ${isEquipped ? '해제' : '착용'}
-                    </button>
-                `;
-                grid.appendChild(div);
-            });
-        };
-
-        window.toggleEquip = function(itemId) {
-            const item = allItems.find(i => i.id === itemId);
-            if (!item) return;
-            if (gameState.equipped[item.type] === item.id) {
-                gameState.equipped[item.type] = "none";
-            } else {
-                gameState.equipped[item.type] = item.id;
-            }
-            updateAllUI();
-            renderInventory();
-            saveToDB();
-        };
-
-        window.switchShopTab = function(tab) {
-            gameState.currentShopTab = tab;
-            document.getElementById('tab-bg').classList.toggle('active', tab === 'bg');
-            document.getElementById('tab-acc').classList.toggle('active', tab === 'acc');
-            renderShop();
-        };
-
-        window.renderShop = function() {
-            const grid = document.getElementById('shop-grid');
-            if (!grid) return;
-            grid.innerHTML = "";
-            const items = shopItems[gameState.currentShopTab] || [];
-            items.forEach(item => {
-                const isBought = gameState.inventory.includes(item.id);
-                const div = document.createElement('div');
-                div.className = "item-card";
-                div.innerHTML = `
-                    <div class="item-icon">${item.icon || "🎨"}</div>
-                    <div class="item-name">${item.name}</div>
-                    <button class="item-btn ${isBought ? 'bought' : ''}" onclick="buyItem('${item.id}', ${item.price})" ${isBought ? 'disabled' : ''}>
-                        ${isBought ? '보유중' : item.price + ' 코인'}
-                    </button>
-                `;
-                grid.appendChild(div);
-            });
-        };
-
-        window.buyItem = function(id, price) {
-            if (gameState.coins < price) {
-                alert("코인이 부족합니다!");
-                return;
-            }
-            gameState.coins -= price;
-            gameState.inventory.push(id);
-            alert("🛍️ 아이템을 구매했습니다!");
-            updateAllUI();
-            renderShop();
-            saveToDB();
-        };
-
-        window.renderAttendance = function() {
-            const streakEl = document.getElementById('streak-days');
-            const monthlyEl = document.getElementById('monthly-count');
-            if (streakEl) streakEl.innerText = gameState.attendance ? gameState.attendance.streak : 1;
-            if (monthlyEl) monthlyEl.innerText = gameState.attendance ? gameState.attendance.monthlyCount : 1;
-            
-            const calendar = document.getElementById('calendar');
-            if (calendar) {
-                calendar.innerHTML = "";
-                const checkedDays = (gameState.attendance && gameState.attendance.checkedDays) ? gameState.attendance.checkedDays : [];
-                for (let day = 1; day <= 30; day++) {
-                    const div = document.createElement('div');
-                    div.className = "day-cell";
-                    if (day === new Date().getDate()) div.classList.add('today');
-                    if (checkedDays.includes(day)) {
-                        div.classList.add('checked');
+        function listenUserData(uid) {
+            const userRef = doc(db, "users", uid);
+            onSnapshot(userRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    document.getElementById('user-nickname-display').innerText = data.nickname || '사용자';
+                    document.getElementById('streak-count').innerText = data.attendanceStreak || 0;
+                    
+                    // 로컬 날짜 기준 체크
+                    const todayStr = getLocalDateString();
+                    const btn = document.getElementById('attendance-btn');
+                    
+                    if (data.lastAttendanceDate === todayStr) {
+                        btn.innerText = "오늘 출석 완료!";
+                        btn.disabled = true;
+                    } else {
+                        btn.innerText = "오늘 출석하기";
+                        btn.disabled = false;
                     }
-                    div.innerText = day;
-                    calendar.appendChild(div);
+
+                    if (data.weeklyFocusMinutes && weeklyChart) {
+                        weeklyChart.data.datasets[0].data = data.weeklyFocusMinutes;
+                        weeklyChart.update();
+                    }
+
+                    const groupIds = data.groups || [];
+                    await updateGroupSelectOptions(groupIds);
                 }
-            }
-            renderWeeklyChart();
-        };
-
-        window.renderWeeklyChart = function() {
-            const chartContainer = document.getElementById('weekly-chart');
-            if (!chartContainer || !gameState.weeklyStats) return;
-            chartContainer.innerHTML = "";
-            const days = ['월', '화', '수', '목', '금', '토', '일'];
-            const lastWeek = gameState.weeklyStats.lastWeek || [0,0,0,0,0,0,0];
-            const thisWeek = gameState.weeklyStats.thisWeek || [0,0,0,0,0,0,0];
-            const maxVal = Math.max(...lastWeek, ...thisWeek, 120);
-
-            days.forEach((day, idx) => {
-                const lastH = (lastWeek[idx] / maxVal) * 100;
-                const thisH = (thisWeek[idx] / maxVal) * 100;
-                const col = document.createElement('div');
-                col.className = 'chart-col';
-                col.innerHTML = `
-                    <div class="bars-wrap">
-                        <div class="bar last-week" style="height: ${lastH}%"></div>
-                        <div class="bar this-week" style="height: ${thisH}%"></div>
-                    </div>
-                    <div class="day-label">${day}</div>
-                `;
-                chartContainer.appendChild(col);
             });
-        };
-
-        window.renderMissions = function() {
-            const list = document.getElementById('mission-list');
-            const countDisplay = document.getElementById('mission-count');
-            if (!list) return;
-            list.innerHTML = "";
-            const missions = gameState.missions || [];
-            const completedCount = missions.filter(m => m.completed).length;
-            if (countDisplay) countDisplay.innerText = `${completedCount}/${missions.length} 완료`;
-
-            missions.forEach((m) => {
-                const div = document.createElement('div');
-                div.className = "mission-item";
-                div.innerHTML = `
-                    <span class="mission-text" style="${m.completed ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${m.title}</span>
-                    <div>
-                        <button class="claim-btn ${m.completed ? 'done' : ''}" onclick="claimMission(${m.id})">${m.completed ? '✓' : '완료'}</button>
-                        <button class="delete-btn" onclick="deleteMission(${m.id})">✕</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-        };
-
-        window.claimMission = function(id) {
-            const mission = gameState.missions.find(m => m.id === id);
-            if (mission && !mission.completed) {
-                mission.completed = true;
-                gameState.coins += 20;
-                gainXP(35);
-            }
-        };
-
-        window.addCustomMission = function() {
-            const input = document.getElementById('custom-mission-input');
-            const title = input.value.trim();
-            if (!title) return alert("미션 내용을 입력해주세요!");
-            if (!gameState.missions) gameState.missions = [];
-            gameState.missions.push({ id: Date.now(), title: title, completed: false });
-            input.value = "";
-            updateAllUI();
-            saveToDB();
-        };
-
-        window.deleteMission = function(id) {
-            gameState.missions = gameState.missions.filter(m => m.id !== id);
-            updateAllUI();
-            saveToDB();
-        };
-
-        window.adjustTargetTime = function(min) {
-            if (gameState.isTimerRunning || gameState.isTimerPaused) return;
-            gameState.targetFocusMinutes = Math.max(1, gameState.targetFocusMinutes + min);
-            document.getElementById('target-time-display').innerText = gameState.targetFocusMinutes + "분";
-            gameState.remainingSeconds = gameState.targetFocusMinutes * 60;
-            updateTimerDisplay(gameState.remainingSeconds);
-            saveToDB();
-        };
-
-        window.updateTimerDisplay = function(sec) {
-            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-            const s = (sec % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `00:${m}:${s}`;
-        };
-
-        window.handleMainTimerBtn = function() {
-            if (!gameState.isTimerRunning && !gameState.isTimerPaused) {
-                gameState.remainingSeconds = gameState.targetFocusMinutes * 60;
-                startTimer();
-            } else if (gameState.isTimerRunning) {
-                pauseTimer();
-            } else if (gameState.isTimerPaused) {
-                startTimer();
-            }
-        };
-
-        function startTimer() {
-            gameState.isTimerRunning = true;
-            gameState.isTimerPaused = false;
-            document.getElementById('timer-main-btn').innerText = "잠시 멈추기 ⏸️";
-            document.getElementById('timer-stop-btn').style.display = "inline-block";
-            clearInterval(gameState.timerInterval);
-            gameState.timerInterval = setInterval(() => {
-                gameState.remainingSeconds--;
-                updateTimerDisplay(gameState.remainingSeconds);
-                if (gameState.remainingSeconds <= 0) {
-                    clearInterval(gameState.timerInterval);
-                    finishTimer();
-                }
-            }, 1000);
         }
 
-        function pauseTimer() {
-            clearInterval(gameState.timerInterval);
-            gameState.isTimerRunning = false;
-            gameState.isTimerPaused = true;
-            document.getElementById('timer-main-btn').innerText = "이어서 시작 ▶️";
+        async function updateGroupSelectOptions(groupIds) {
+            const selectEl = document.getElementById('group-select');
+            const currentSelected = selectEl.value;
+            selectEl.innerHTML = '';
+
+            if (groupIds.length === 0) {
+                selectEl.innerHTML = '<option value="">참여 중인 그룹이 없습니다</option>';
+                document.getElementById('selected-group-view').classList.add('hidden');
+                if (unsubscribeGroup) unsubscribeGroup();
+                return;
+            }
+
+            for (const gId of groupIds) {
+                const gSnap = await getDoc(doc(db, "groups", gId));
+                if (gSnap.exists()) {
+                    const opt = document.createElement('option');
+                    opt.value = gId;
+                    opt.innerText = gSnap.data().name;
+                    selectEl.appendChild(opt);
+                }
+            }
+
+            if (groupIds.includes(currentSelected)) {
+                selectEl.value = currentSelected;
+            } else {
+                selectEl.value = groupIds[0];
+            }
+            onGroupSelected();
         }
+
+        window.onGroupSelected = function() {
+            const selectEl = document.getElementById('group-select');
+            const selectedGroupId = selectEl.value;
+
+            if (!selectedGroupId) {
+                document.getElementById('selected-group-view').classList.add('hidden');
+                if (unsubscribeGroup) unsubscribeGroup();
+                return;
+            }
+
+            document.getElementById('selected-group-view').classList.remove('hidden');
+            listenGroupInfo(selectedGroupId);
+        };
+
+        window.createGroup = async function() {
+            const groupName = document.getElementById('new-group-name').value.trim();
+            if (!groupName) return alert("그룹 이름을 입력해주세요.");
+
+            try {
+                const groupRef = await addDoc(collection(db, "groups"), {
+                    name: groupName,
+                    createdBy: currentUser.uid,
+                    members: [currentUser.uid]
+                });
+
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    groups: arrayUnion(groupRef.id)
+                });
+
+                document.getElementById('new-group-name').value = '';
+                alert(`🎉 그룹 '${groupName}' 생성이 완료되었습니다!`);
+            } catch (err) { alert("그룹 생성 실패: " + err.message); }
+        };
+
+        window.joinGroup = async function() {
+            const groupId = document.getElementById('join-group-id').value.trim();
+            if (!groupId) return alert("초대 코드를 입력해주세요.");
+
+            try {
+                const groupRef = doc(db, "groups", groupId);
+                const groupSnap = await getDoc(groupRef);
+
+                if (!groupSnap.exists()) return alert("존재하지 않는 그룹 코드입니다.");
+
+                await updateDoc(groupRef, { members: arrayUnion(currentUser.uid) });
+                await updateDoc(doc(db, "users", currentUser.uid), { groups: arrayUnion(groupId) });
+
+                document.getElementById('join-group-id').value = '';
+                alert("그룹 참여 성공!");
+            } catch (err) { alert("그룹 참여 실패: " + err.message); }
+        };
+
+        window.leaveGroup = async function() {
+            const selectEl = document.getElementById('group-select');
+            const groupId = selectEl.value;
+            if (!groupId) return;
+
+            if (!confirm("정말 이 그룹을 탈퇴하시겠습니까?")) return;
+
+            try {
+                await updateDoc(doc(db, "groups", groupId), { members: arrayRemove(currentUser.uid) });
+                await updateDoc(doc(db, "users", currentUser.uid), { groups: arrayRemove(groupId) });
+
+                alert("선택한 그룹에서 탈퇴했습니다.");
+            } catch (err) { alert("탈퇴 실패: " + err.message); }
+        };
+
+        function listenGroupInfo(groupId) {
+            if (unsubscribeGroup) unsubscribeGroup();
+
+            const groupRef = doc(db, "groups", groupId);
+            unsubscribeGroup = onSnapshot(groupRef, async (groupSnap) => {
+                if (groupSnap.exists()) {
+                    const groupData = groupSnap.data();
+                    document.getElementById('current-group-name').innerText = groupData.name;
+                    document.getElementById('current-group-id').innerText = groupSnap.id;
+
+                    const memberListEl = document.getElementById('group-member-list');
+                    memberListEl.innerHTML = '';
+
+                    for (const memberUid of groupData.members) {
+                        const mUserSnap = await getDoc(doc(db, "users", memberUid));
+                        if (mUserSnap.exists()) {
+                            const mData = mUserSnap.data();
+                            const memberDiv = document.createElement('div');
+                            memberDiv.className = 'row';
+                            memberDiv.style.borderBottom = '1px solid #eee';
+                            memberDiv.style.padding = '5px 0';
+
+                            const isMe = memberUid === currentUser.uid;
+                            const memberNick = mData.nickname || '사용자';
+                            const displayName = isMe ? `${memberNick} (나)` : memberNick;
+                            const streak = mData.attendanceStreak || 0;
+
+                            memberDiv.innerHTML = `
+                                <span>🔥 ${displayName}</span>
+                                <span style="font-size: 0.85rem; color: #555;">연속 ${streak}일 출석 중</span>
+                            `;
+                            memberListEl.appendChild(memberDiv);
+                        }
+                    }
+                }
+            });
+        }
+
+        // 출석 체크 로직 (로컬 한국 시간 처리 적용)
+        window.checkAttendance = async function() {
+            if (!currentUser) return;
+            try {
+                const userRef = doc(db, "users", currentUser.uid);
+                const docSnap = await getDoc(userRef);
+                const data = docSnap.data() || {};
+
+                const todayStr = getLocalDateString();
+                
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = getLocalDateString(yesterday);
+
+                let newStreak = 1;
+                // 어제 출석을 완료했었다면 +1일 연장
+                if (data.lastAttendanceDate === yesterdayStr) {
+                    newStreak = (data.attendanceStreak || 0) + 1;
+                }
+
+                await updateDoc(userRef, {
+                    attendanceStreak: newStreak,
+                    lastAttendanceDate: todayStr
+                });
+                
+                alert(`🎉 출석 완료! 현재 ${newStreak}일 연속 출석 중입니다!`);
+            } catch (err) {
+                alert("출석 체크 중 오류가 발생했습니다: " + err.message);
+            }
+        };
+
+        window.addFocusTime = async function(minutes) {
+            if (!currentUser) return;
+            const userRef = doc(db, "users", currentUser.uid);
+            const docSnap = await getDoc(userRef);
+            const data = docSnap.data();
+
+            let weeklyArr = (data && data.weeklyFocusMinutes) ? data.weeklyFocusMinutes : [0, 0, 0, 0, 0, 0, 0];
+            const todayIndex = new Date().getDay();
+            weeklyArr[todayIndex] += minutes;
+
+            await updateDoc(userRef, { weeklyFocusMinutes: weeklyArr });
+        };
+
+        window.toggleTimer = function() {
+            const btn = document.getElementById('timer-btn');
+            if (timerState.isRunning) {
+                clearInterval(timerState.interval);
+                timerState.isRunning = false;
+                btn.innerText = "이어서 시작";
+            } else {
+                timerState.isRunning = true;
+                btn.innerText = "일시정지";
+                timerState.interval = setInterval(() => {
+                    timerState.remainingSeconds--;
+                    updateTimerDisplay();
+
+                    if (timerState.remainingSeconds <= 0) {
+                        clearInterval(timerState.interval);
+                        timerState.isRunning = false;
+                        btn.innerText = "시작";
+                        window.addFocusTime(25);
+                        alert("⏱️ 목표 시간 달성! DB에 기록되었습니다.");
+                        timerState.remainingSeconds = 25 * 60;
+                        updateTimerDisplay();
+                    }
+                }, 1000);
+            }
+        };
 
         window.resetTimer = function() {
-            clearInterval(gameState.timerInterval);
-            gameState.isTimerRunning = false;
-            gameState.isTimerPaused = false;
-            gameState.remainingSeconds = gameState.targetFocusMinutes * 60;
-            updateTimerDisplay(gameState.remainingSeconds);
-            document.getElementById('timer-main-btn').innerText = "집중 시작하기 ✨";
-            document.getElementById('timer-stop-btn').style.display = "none";
+            clearInterval(timerState.interval);
+            timerState.isRunning = false;
+            timerState.remainingSeconds = 25 * 60;
+            document.getElementById('timer-btn').innerText = "시작";
+            updateTimerDisplay();
         };
 
-        function finishTimer() {
-            resetTimer();
-            const mins = gameState.targetFocusMinutes;
-            const gainedXP = mins * 5;
-            const gainedCoins = mins * 3;
-            gameState.coins += gainedCoins;
-            
-            // 오늘 집중시간 반영
-            const todayIdx = (new Date().getDay() + 6) % 7; // 월요일(0) ~ 일요일(6)
-            if (!gameState.weeklyStats.thisWeek) gameState.weeklyStats.thisWeek = [0,0,0,0,0,0,0];
-            gameState.weeklyStats.thisWeek[todayIdx] += mins;
-
-            alert(`🎉 ${mins}분 집중 완료!\n+${gainedXP} XP / +🪙 ${gainedCoins} 코인 획득!`);
-            gainXP(gainedXP);
+        function updateTimerDisplay() {
+            const m = Math.floor(timerState.remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (timerState.remainingSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
         }
 
-        // 사용 시간 자동 누적
-        setInterval(() => {
-            if (currentUser) {
-                gameState.usageSeconds++;
-                updateUsageDisplay();
-            }
-        }, 1000);
-
-        function updateUsageDisplay() {
-            const h = Math.floor(gameState.usageSeconds / 3600);
-            const m = Math.floor((gameState.usageSeconds % 3600) / 60);
-            const s = gameState.usageSeconds % 60;
-            const text = document.getElementById('usage-time-display');
-            if (text) text.innerText = `${h}시간 ${m}분 ${s}초`;
-            
-            const targetSec = gameState.alertThresholdMinutes * 60;
-            const percent = Math.min(100, Math.floor((gameState.usageSeconds / targetSec) * 100));
-            
-            const circle = document.getElementById('usage-circle');
-            const progressBar = document.getElementById('usage-progress-bar');
-            if (circle) circle.innerText = `${percent}%`;
-            if (progressBar) progressBar.style.width = `${percent}%`;
+        function initChart() {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            weeklyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['일', '월', '화', '수', '목', '금', '토'],
+                    datasets: [{
+                        label: '집중 시간 (분)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
         }
-
-        window.setAlertThreshold = function(minutes) {
-            gameState.alertThresholdMinutes = minutes;
-            document.querySelectorAll('.alert-option-btn').forEach(btn => btn.classList.remove('active'));
-            const targetBtn = document.getElementById(`alert-btn-${minutes}`);
-            if (targetBtn) targetBtn.classList.add('active');
-            updateUsageDisplay();
-            saveToDB();
-        };
-
-        window.showLevelRewardsInfo = function() {
-            const roadmapModal = document.getElementById('roadmap-modal');
-            const roadmapList = document.getElementById('roadmap-list');
-            if (!roadmapModal || !roadmapList) return;
-            roadmapList.innerHTML = "";
-            for (let lvl = 1; lvl <= 10; lvl++) {
-                const isReached = gameState.level >= lvl;
-                const isCurrent = gameState.level === lvl;
-                const reward = levelRewards[lvl];
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `roadmap-step ${isReached ? 'achieved' : ''} ${isCurrent ? 'current' : ''}`;
-                itemDiv.innerHTML = `
-                    <div class="roadmap-node">
-                        <span class="node-dot"></span>
-                    </div>
-                    <div class="roadmap-card">
-                        <div class="roadmap-lvl">Lv.${lvl} ${isCurrent ? '<span class="current-tag" style="color:#10b981;">NOW</span>' : ''}</div>
-                        <div class="roadmap-info" style="display:flex; align-items:center; gap:8px;">
-                            <div class="roadmap-icon-wrap" style="font-size:1.5rem;">${reward ? reward.icon : "🪙"}</div>
-                            <div class="roadmap-text">
-                                <div class="reward-title" style="font-weight:bold;">${reward ? reward.name : '달성 보상'}</div>
-                                <div class="reward-sub" style="color:#64748b;">+ ${50 + (lvl * 10)} 코인</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                roadmapList.appendChild(itemDiv);
-            }
-            roadmapModal.style.display = 'flex';
-        };
-
-        window.closeRoadmapModal = function() {
-            const modal = document.getElementById('roadmap-modal');
-            if (modal) modal.style.display = 'none';
-        };
-
-        function openLevelUpModal(lvl, coins, specialItem) {
-            const modal = document.getElementById('level-up-modal');
-            if (!modal) return;
-            document.getElementById('modal-level-num').innerText = `Lv.${lvl}`;
-            const iconSlot = document.getElementById('modal-reward-item');
-            const textSlot = document.getElementById('modal-reward-text');
-           
-            if (specialItem) {
-                iconSlot.innerText = specialItem.icon;
-                textSlot.innerHTML = `${specialItem.name}<br><span style="font-size:0.85rem; color:#ff8fa3;">+ 🪙 ${coins} 코인</span>`;
-            } else {
-                iconSlot.innerText = "🪙";
-                textSlot.innerText = `${coins} 코인 획득!`;
-            }
-            modal.style.display = 'flex';
-        }
-
-        window.closeLevelUpModal = function() {
-            const modal = document.getElementById('level-up-modal');
-            if (modal) modal.style.display = 'none';
-        };
-
-        // Event Listeners
-        document.getElementById('custom-mission-input')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addCustomMission();
-        });
-
-        window.addEventListener('keydown', function(e) {
-            const modal = document.getElementById('level-up-modal');
-            if (modal && e.key === 'Enter' && modal.style.display === 'flex') {
-                closeLevelUpModal();
-            }
-        });
     </script>
 </body>
 </html>
