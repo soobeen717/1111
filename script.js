@@ -2,7 +2,7 @@ let gameState = {
     level: 1,
     xp: 0,
     maxXp: 100, // 기본 레벨 1 목표 경험치
-    coins: 100, // 👈 기본 지급 코인 수 (원하는 숫자로 변경 가능)
+    coins: 100, // 기본 지급 코인
     equipped: { hat: "none", acc: "none", bg: "none" },
     inventory: ["hat_party", "acc_ribbon"], 
     currentShopTab: "bg",
@@ -25,7 +25,7 @@ let gameState = {
     ]
 };
 
-// --- ✨ 레벨업 전용 보상 테이블 (특정 레벨 달성 시 지급) ---
+// --- 레벨업 전용 보상 테이블 ---
 const levelRewards = {
     2: { id: "hat_crown", name: "왕관", icon: "👑", type: "hat" },
     3: { id: "bg_galaxy", name: "우주 속으로", icon: "🌌", type: "bg", color: "#0b0c10" },
@@ -33,7 +33,7 @@ const levelRewards = {
     5: { id: "bg_palace", name: "황금 궁전", icon: "🏰", type: "bg", color: "#f4d03f" }
 };
 
-// --- 일반 착용 아이템 DB ---
+// --- 착용 아이템 DB ---
 const wearableItems = [
     { id: "hat_party", name: "꼬마 고깔모자", icon: "🎪", type: "hat" },
     { id: "acc_ribbon", name: "빨간 나비리본", icon: "🎀", type: "acc" },
@@ -45,7 +45,6 @@ const wearableItems = [
     { id: "acc_glasses", name: "지적인 안경", icon: "👓", type: "acc" },
     { id: "hat_ribbon", name: "핑크 리본모자", icon: "👒", type: "hat" },
     { id: "acc_bowtie", name: "하늘색 보우타이", icon: "👔", type: "acc" },
-    // 레벨업 보상 아이템
     levelRewards[2],
     levelRewards[4]
 ];
@@ -64,7 +63,6 @@ const backgroundItems = [
     { id: "bg_forest", name: "싱그러운 초록", icon: "", type: "bg", color: "#c8e6c9" },
     { id: "bg_peach", name: "달콤 복숭아", icon: "", type: "bg", color: "#ffe0b2" },
     { id: "bg_lavender", name: "은은한 보라", icon: "", type: "bg", color: "#e1bee7" },
-    // 레벨업 보상 배경
     levelRewards[3],
     levelRewards[5]
 ];
@@ -104,7 +102,7 @@ window.onload = function() {
     renderAttendance();
 };
 
-// ✨ 새로 추가된 레벨 보상 안내 버튼 클릭 함수
+// 🎁 레벨업 보상 안내 팝업
 function showLevelRewardsInfo() {
     let msg = "🎁 [레벨업 한정 보상 안내] 🎁\n\n";
     Object.keys(levelRewards).forEach(lvl => {
@@ -130,7 +128,6 @@ function showScreen(id) {
     if (id === 'attendance') renderAttendance();
 }
 
-// ✨ 레벨업 시 코인 + 레벨업 전용 아이템 보상 지급
 function gainXP(amount) {
     gameState.xp += amount;
     
@@ -138,16 +135,13 @@ function gainXP(amount) {
         gameState.xp -= gameState.maxXp;
         gameState.level++;
         
-        // 레벨업할 때마다 요구 경험치 1.5배 증가
         gameState.maxXp = Math.round(gameState.maxXp * 1.5);
         
-        // 기본 보상 코인
         let rewardCoin = 50;
         gameState.coins += rewardCoin;
         
         let rewardMsg = `🎉 축하합니다! Lv.${gameState.level}로 레벨업했습니다!\n\n🎁 기본 보상: 🪙 ${rewardCoin} 코인`;
 
-        // ✨ 해당 레벨 전용 보상 아이템 확인 및 지급
         const specialReward = levelRewards[gameState.level];
         if (specialReward) {
             if (!gameState.inventory.includes(specialReward.id)) {
@@ -163,8 +157,11 @@ function gainXP(amount) {
 }
 
 function updateAllUI() {
-    document.getElementById('level-display').innerText = `Lv.${gameState.level}`;
-    document.getElementById('coin-display').innerText = `🪙 ${gameState.coins}`;
+    const lvlDisp = document.getElementById('level-display');
+    if (lvlDisp) lvlDisp.innerText = `Lv.${gameState.level}`;
+
+    const coinDisp = document.getElementById('coin-display');
+    if (coinDisp) coinDisp.innerText = `🪙 ${gameState.coins}`;
     
     const xpPercent = Math.min(100, Math.floor((gameState.xp / gameState.maxXp) * 100));
     const xpBar = document.getElementById('xp-bar');
@@ -174,25 +171,31 @@ function updateAllUI() {
     const acc = allItems.find(i => i.id === gameState.equipped.acc);
     const bg = backgroundItems.find(i => i.id === gameState.equipped.bg);
 
-    document.getElementById('wear-hat').innerText = hat ? hat.icon : "";
-    document.getElementById('wear-acc').innerText = acc ? acc.icon : "";
+    const wearHat = document.getElementById('wear-hat');
+    if (wearHat) wearHat.innerText = hat ? hat.icon : "";
+
+    const wearAcc = document.getElementById('wear-acc');
+    if (wearAcc) wearAcc.innerText = acc ? acc.icon : "";
     
     const room = document.getElementById('room');
     const bgLayer = document.getElementById('room-bg-layer');
     
-    if (bg) {
-        room.style.backgroundColor = bg.color;
-        bgLayer.innerText = bg.icon || "";
-    } else {
-        room.style.backgroundColor = "#f7f3e9";
-        bgLayer.innerText = "";
+    if (room && bgLayer) {
+        if (bg) {
+            room.style.backgroundColor = bg.color;
+            bgLayer.innerText = bg.icon || "";
+        } else {
+            room.style.backgroundColor = "#f7f3e9";
+            bgLayer.innerText = "";
+        }
     }
 
     const equippedHatText = hat ? hat.name : '';
     const equippedAccText = acc ? acc.name : '';
     const equippedText = [equippedHatText, equippedAccText].filter(Boolean).join(', ');
 
-    document.getElementById('equipped-banner').innerText = equippedText ? `👗 착용: ${equippedText}` : "기본 상태";
+    const eqBanner = document.getElementById('equipped-banner');
+    if (eqBanner) eqBanner.innerText = equippedText ? `👗 착용: ${equippedText}` : "기본 상태";
 
     renderMissions();
     updateUsageDisplay();
@@ -213,7 +216,7 @@ function renderMissions() {
         div.innerHTML = `
             <span class="mission-text" style="${m.completed ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${m.title}</span>
             <div>
-                <button class="claim-btn ${m.completed ? 'done' : ''}" onclick="claimMission(${m.id})">${m.completed ? '✓' : ''}</button>
+                <button class="claim-btn ${m.completed ? 'done' : ''}" onclick="claimMission(${m.id})">${m.completed ? '✓' : '완료'}</button>
                 <button class="delete-btn" onclick="deleteMission(${m.id})">✕</button>
             </div>
         `;
@@ -232,6 +235,7 @@ function claimMission(id) {
 
 function addCustomMission() {
     const input = document.getElementById('custom-mission-input');
+    if (!input) return;
     const title = input.value.trim();
 
     if (!title) {
@@ -252,7 +256,10 @@ function deleteMission(id) {
 function adjustTargetTime(min) {
     if (gameState.isTimerRunning || gameState.isTimerPaused) return;
     gameState.targetFocusMinutes = Math.max(1, gameState.targetFocusMinutes + min);
-    document.getElementById('target-time-display').innerText = gameState.targetFocusMinutes + "분";
+    
+    const targetDisp = document.getElementById('target-time-display');
+    if (targetDisp) targetDisp.innerText = gameState.targetFocusMinutes + "분";
+    
     gameState.remainingSeconds = gameState.targetFocusMinutes * 60;
     updateTimerDisplay(gameState.remainingSeconds);
 }
@@ -260,7 +267,8 @@ function adjustTargetTime(min) {
 function updateTimerDisplay(sec) {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
-    document.getElementById('timer').innerText = `00:${m}:${s}`;
+    const timerElement = document.getElementById('timer');
+    if (timerElement) timerElement.innerText = `00:${m}:${s}`;
 }
 
 function handleMainTimerBtn() {
@@ -278,10 +286,16 @@ function startTimer() {
     gameState.isTimerRunning = true;
     gameState.isTimerPaused = false;
 
-    document.getElementById('timer-main-btn').innerText = "잠시 멈추기 ⏸️";
-    document.getElementById('timer-stop-btn').style.display = "inline-block";
-    document.getElementById('timer-setup').style.opacity = "0.5";
-    document.getElementById('timer-setup').style.pointerEvents = "none";
+    const mainBtn = document.getElementById('timer-main-btn');
+    const stopBtn = document.getElementById('timer-stop-btn');
+    const setup = document.getElementById('timer-setup');
+
+    if (mainBtn) mainBtn.innerText = "잠시 멈추기 ⏸️";
+    if (stopBtn) stopBtn.style.display = "inline-block";
+    if (setup) {
+        setup.style.opacity = "0.5";
+        setup.style.pointerEvents = "none";
+    }
 
     clearInterval(gameState.timerInterval);
     gameState.timerInterval = setInterval(() => {
@@ -300,7 +314,8 @@ function pauseTimer() {
     gameState.isTimerRunning = false;
     gameState.isTimerPaused = true;
 
-    document.getElementById('timer-main-btn').innerText = "이어서 시작 ▶️";
+    const mainBtn = document.getElementById('timer-main-btn');
+    if (mainBtn) mainBtn.innerText = "이어서 시작 ▶️";
 }
 
 function resetTimer() {
@@ -311,10 +326,16 @@ function resetTimer() {
 
     updateTimerDisplay(gameState.remainingSeconds);
 
-    document.getElementById('timer-main-btn').innerText = "집중 시작하기 ✨";
-    document.getElementById('timer-stop-btn').style.display = "none";
-    document.getElementById('timer-setup').style.opacity = "1";
-    document.getElementById('timer-setup').style.pointerEvents = "auto";
+    const mainBtn = document.getElementById('timer-main-btn');
+    const stopBtn = document.getElementById('timer-stop-btn');
+    const setup = document.getElementById('timer-setup');
+
+    if (mainBtn) mainBtn.innerText = "집중 시작하기 ✨";
+    if (stopBtn) stopBtn.style.display = "none";
+    if (setup) {
+        setup.style.opacity = "1";
+        setup.style.pointerEvents = "auto";
+    }
 }
 
 function finishTimer() {
@@ -375,8 +396,10 @@ function toggleEquip(itemId) {
 
 function switchShopTab(tab) {
     gameState.currentShopTab = tab;
-    document.getElementById('tab-bg').classList.toggle('active', tab === 'bg');
-    document.getElementById('tab-acc').classList.toggle('active', tab === 'acc');
+    const tabBg = document.getElementById('tab-bg');
+    const tabAcc = document.getElementById('tab-acc');
+    if (tabBg) tabBg.classList.toggle('active', tab === 'bg');
+    if (tabAcc) tabAcc.classList.toggle('active', tab === 'acc');
     renderShop();
 }
 
@@ -416,8 +439,10 @@ function buyItem(id, price) {
 }
 
 function renderAttendance() {
-    document.getElementById('streak-days').innerText = gameState.attendance.streak;
-    document.getElementById('monthly-count').innerText = gameState.attendance.monthlyCount;
+    const streak = document.getElementById('streak-days');
+    const monthly = document.getElementById('monthly-count');
+    if (streak) streak.innerText = gameState.attendance.streak;
+    if (monthly) monthly.innerText = gameState.attendance.monthlyCount;
 
     const calendar = document.getElementById('calendar');
     if (!calendar) return;
@@ -470,14 +495,4 @@ function setAlertThreshold(minutes) {
     if (targetBtn) targetBtn.classList.add('active');
 
     updateUsageDisplay();
-}
-// 레벨 보상 안내 팝업 함수
-function showLevelRewardsInfo() {
-    let msg = "🎁 [레벨업 한정 보상 안내] 🎁\n\n";
-    Object.keys(levelRewards).forEach(lvl => {
-        const reward = levelRewards[lvl];
-        msg += `• Lv.${lvl}: ${reward.icon} ${reward.name}\n`;
-    });
-    msg += "\n* 레벨 달성 시 50 코인과 함께 보상 아이템이 보관함에 자동으로 지급됩니다!";
-    alert(msg);
 }

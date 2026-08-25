@@ -3,157 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>토끼의 감성 공부방 🐰</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Firebase 연동 앱 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { padding: 20px; background: #f4f4f9; max-width: 500px; margin: 0 auto; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { font-size: 1.1rem; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        button { padding: 6px 12px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 5px; width: 100%; }
+        .btn-amber { background: #ffc107; color: #000; }
+        .btn-green { background: #28a745; color: white; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-    <div class="game-area">
-        <div class="header">
-            <div class="status-group">
-                <span class="level-badge" id="level-display">Lv.1</span>
-                <button class="level-reward-btn" onclick="showLevelRewardsInfo()" title="레벨업 보상 보기">🎁</button>
-                <div class="xp-bar-container"><div class="xp-bar" id="xp-bar"></div></div>
+    <!-- 0. 로그인 / 회원가입 카드 -->
+    <div class="card" id="auth-card">
+        <h2>🔒 로그인 / 회원가입</h2>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <input type="email" id="auth-email" placeholder="이메일 입력">
+            <input type="password" id="auth-pw" placeholder="비밀번호 입력">
+            <div class="row" style="margin-top: 5px;">
+                <button onclick="handleSignUp()" style="width: 48%;">회원가입</button>
+                <button onclick="handleLogin()" class="btn-green" style="width: 48%;">로그인</button>
             </div>
-            <div class="coin-display" id="coin-display">🪙 100</div>
-        </div>
-
-        <div class="timer-section">
-            <div class="timer-display" id="timer">00:10:00</div>
-            <div class="timer-setup" id="timer-setup">
-                <button onclick="adjustTargetTime(-10)">-10</button>
-                <span id="target-time-display">10분</span>
-                <button onclick="adjustTargetTime(10)">+10</button>
-            </div>
-        </div>
-
-        <div class="bunny-room" id="room">
-            <div class="room-bg-layer" id="room-bg-layer"></div>
-
-            <div class="room-window"></div>
-            <div class="room-clock"><span>🕒</span></div>
-
-            <div class="room-rug"></div>
-            <div class="room-desk">
-                <div class="desk-laptop"></div>
-                <div class="desk-cup"></div>
-            </div>
-            <div class="room-chair"></div>
-
-            <div class="character-container">
-                <span class="rabbit-emoji">🐰</span>
-                <div class="wearable-slot hat" id="wear-hat"></div>
-                <div class="wearable-slot acc" id="wear-acc"></div>
-            </div>
-
-            <div class="bubble" id="bubble-chat">오늘도 열공! 🐰</div>
-            <div class="room-floor-banner" id="equipped-banner">👗 기본 상태</div>
-        </div>
-
-        <div class="timer-btn-group">
-            <button class="timer-btn main-btn" id="timer-main-btn" onclick="handleMainTimerBtn()">집중 시작하기 ✨</button>
-            <button class="timer-btn stop-btn" id="timer-stop-btn" onclick="resetTimer()" style="display: none;">포기하기 🛑</button>
-        </div>
-
-        <div class="content-scroll-area">
-            <section id="screen-home" class="screen active">
-                <div class="mission-section">
-                    <div class="mission-title-bar">
-                        <span>오늘의 당근 미션 🥕</span>
-                        <span class="mission-status" id="mission-count">0/0 완료</span>
-                    </div>
-
-                    <div class="mission-input-group">
-                        <input type="text" id="custom-mission-input" placeholder="새 할 일/미션 입력..." maxlength="20">
-                        <button onclick="addCustomMission()">추가</button>
-                    </div>
-
-                    <div id="mission-list"></div>
-                </div>
-            </section>
-
-            <section id="screen-decor" class="screen">
-                <div class="item-grid" id="inventory-grid"></div>
-            </section>
-
-            <section id="screen-shop" class="screen">
-                <div class="shop-header">
-                    <button class="shop-pill active" id="tab-bg" onclick="switchShopTab('bg')">배경색</button>
-                    <button class="shop-pill" id="tab-acc" onclick="switchShopTab('acc')">장식품</button>
-                </div>
-                <div class="item-grid" id="shop-grid"></div>
-            </section>
-
-            <section id="screen-attendance" class="screen">
-                <div class="attendance-card">
-                    <div class="attendance-streak-header">
-                        🔥 <span id="streak-days">1</span>일 연속 출석!
-                    </div>
-                    <div class="attendance-sub-text">
-                        이번 달 총 <span id="monthly-count">1</span>회 출석 성공 🎉
-                    </div>
-                    <div class="reward-pills">
-                        <div class="reward-pill" id="reward-3">🎁 3일 (+20)</div>
-                        <div class="reward-pill locked" id="reward-7">🔒 7일 (+50)</div>
-                        <div class="reward-pill locked" id="reward-14">🔒 14일 (+100)</div>
-                    </div>
-                </div>
-
-                <div class="calendar-section">
-                    <div class="calendar-title">이번 달 출석 달력 📅</div>
-                    <div class="calendar-weekdays">
-                        <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
-                    </div>
-                    <div class="calendar-grid" id="calendar"></div>
-                </div>
-            </section>
-
-            <section id="screen-settings" class="screen">
-                <div class="settings-title-header">⚙️ 설정 및 사용 관리</div>
-                
-                <div class="usage-card">
-                    <div class="usage-card-top">
-                        <div class="usage-info">
-                            <div class="usage-label">📊 오늘 실제 앱 사용 시간</div>
-                            <div class="usage-time-text" id="usage-time-display">0시간 0분 0초</div>
-                            <div class="usage-status"><span class="green-dot">●</span> 실시간 자동 측정 중...</div>
-                        </div>
-                        <div class="usage-circle-percent" id="usage-circle">0%</div>
-                    </div>
-                    <div class="usage-progress-bar-bg">
-                        <div class="usage-progress-bar-fill" id="usage-progress-bar"></div>
-                    </div>
-                </div>
-
-                <div class="alert-setting-card">
-                    <div class="alert-title">📢 경고 알림 기준 설정</div>
-                    <div class="alert-options">
-                        <button class="alert-option-btn active" id="alert-btn-30" onclick="setAlertThreshold(30)">
-                            <span>30분 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                        <button class="alert-option-btn" id="alert-btn-60" onclick="setAlertThreshold(60)">
-                            <span>1시간 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                        <button class="alert-option-btn" id="alert-btn-90" onclick="setAlertThreshold(90)">
-                            <span>1시간 30분 후 알림</span>
-                            <span class="check-icon">✓</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="button-group">
-            <button class="action-btn nav-home active" onclick="showScreen('home')">🏠<br>홈</button>
-            <button class="action-btn nav-decor" onclick="showScreen('decor')">🎒<br>보관함</button>
-            <button class="action-btn nav-shop" onclick="showScreen('shop')">🏪<br>코인숍</button>
-            <button class="action-btn nav-attendance" onclick="showScreen('attendance')">📅<br>출석</button>
-            <button class="action-btn nav-settings" onclick="showScreen('settings')">⚙️<br>설정</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 로그인 후 표시될 메인 앱 영역 -->
+    <div id="app-content" class="hidden">
+        
+        <!-- 사용자 정보 카드 -->
+        <div class="card">
+            <div class="row">
+                <span>👋 환영합니다!</span>
+                <button onclick="handleLogout()" style="background:#6c757d;">로그아웃</button>
+            </div>
+        </div>
+
+        <!-- 1. 출석 체크 -->
+        <div class="card">
+            <h2>📅 연속 출석 체크</h2>
+            <div class="row">
+                <span>연속 출석: <strong id="streak-count">0</strong>일째</span>
+                <button id="attendance-btn" onclick="checkAttendance()">오늘 출석하기</button>
+            </div>
+        </div>
+
+        <!-- 2. 집중 타이머 -->
+        <div class="card">
+            <h2>⏱️ 집중 타이머</h2>
+            <div class="row" style="justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 10px 0;">
+                <span id="timer-display">25:00</span>
+            </div>
+            <div class="row" style="justify-content: center; gap: 8px;">
+                <button onclick="toggleTimer()" id="timer-btn">시작</button>
+                <button onclick="resetTimer()" style="background:#dc3545;">리셋</button>
+                <button onclick="addFocusTime(1)" class="btn-amber">+1분 DB 즉시 적립</button>
+            </div>
+        </div>
+
+        <!-- 3. 주간 집중 시간 그래프 -->
+        <div class="card">
+            <h2>📊 주간 집중 시간 (분)</h2>
+            <canvas id="weeklyChart" height="200"></canvas>
+        </div>
+
+        <!-- 4. 개인 스터디 그룹 관리 -->
+        <div class="card">
+            <h2>👥 개인 스터디 그룹</h2>
+            
+            <!-- 그룹 참여 안 했을 때 표시 -->
+            <div id="no-group-view">
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">참여 중인 그룹이 없습니다. 그룹을 만들어보세요!</p>
+                
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="new-group-name" placeholder="새 그룹 이름 입력">
+                    <button onclick="createGroup()" class="btn-green" style="width: 100%;">개인 그룹 생성하기</button>
+                </div>
+                
+                <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
+                    <input type="text" id="join-group-id" placeholder="초대 코드(그룹 ID) 입력">
+                    <button onclick="joinGroup()" style="width: 100%;">코드 입력하고 그룹 참여</button>
+                </div>
+            </div>
+
+            <!-- 그룹 참여 중일 때 표시 -->
+            <div id="in-group-view" class="hidden">
+                <div class="row">
+                    <strong id="current-group-name" style="font-size: 1rem; color: #007bff;">-</strong>
+                    <button onclick="leaveGroup()" style="background:#dc3545; font-size: 0.8rem;">그룹 탈퇴</button>
+                </div>
+                <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">
+                    초대 코드: <span id="current-group-id" style="font-weight: bold; color: #333;">-</span>
+                </p>
+                
+                <div id="group-member-list">
+                    <p style="color:#888; font-size: 0.9rem;">멤버 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK 모듈 로드 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
+            from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, arrayUnion, arrayRemove } 
+            from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRbaKkPkDt8XIu89AGSza5E0RxGdCXWLw",
+            authDomain: "focus1-13f51.firebaseapp.com",
+            projectId: "focus1-13f51",
+            storageBucket: "focus1-13f51.firebasestorage.app",
+            messagingSenderId: "693324510814",
+            appId: "1:693324510814:web:a5bc2e5cc64df9096326cf"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let weeklyChart = null;
+        let timerState = { remainingSeconds: 25 * 60, isRunning: false, interval: null };
+        let unsubscribeGroup = null; // 그룹 멤버 실시간 구독 해제용
+
+        // ----------------------------------------------------
+        // 인증 상태 감지 (로그인 여부 확인)
+        // ----------------------------------------------------
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-card').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                
+                initChart();
+                listenUserData(user.uid);
+            } else {
+                currentUser = null;
+                document.getElementById('auth-card').classList.remove('hidden');
+                document.getElementById('app-content').classList.add('hidden');
+                if (unsubscribeGroup) unsubscribeGroup();
+            }
+        });
+
+        // ----------------------------------------------------
+        // 회원가입 & 로그인 기능
+        // ----------------------------------------------------
+        window.handleSignUp = async function() {
+            const email = document.getElementById('auth-email').value;
+            const pw = document.getElementById('auth-pw').value;
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pw);
+                await setDoc(doc(db, "users", res.user.uid), {
+                    attendanceStreak: 0,
+                    lastAttendanceDate: "",
+                    weeklyFocusMinutes: [0, 0, 0, 0, 0, 0, 0],
+                    groupId: ""
+                });
+                alert("회원가입 완료 및 로그인 되었습니다!");
+            } catch (err) { alert("회원가입 실패: " + err.message); }
+        };
+
+        window.handleLogin = async function() {
+            const email = document.getElementById('auth-email').value;
+            const pw = document.getElementById('auth-pw').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pw);
+            } catch (err) { alert("로그인 실패: " + err.message); }
+        };
+
+        window.handleLogout = function() {
+            signOut(auth);
+        };
+
+        // ----------------------------------------------------
+        // 내 Firestore 데이터 실시간 동기화 및 그룹 감지
+        // ----------------------------------------------------
+        function listenUserData(uid) {
+            const userRef = doc(db, "users", uid);
+            onSnapshot(userRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    document.getElementById('streak-count').innerText = data.attendanceStreak || 0;
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const btn = document.getElementById('attendance-btn');
+                    
+                    if (data.lastAttendanceDate === todayStr) {
+                        btn.innerText = "오늘 출석 완료!";
+                        btn.disabled = true;
+                    } else {
+                        btn.innerText = "오늘 출석하기";
+                        btn.disabled = false;
+                    }
+
+                    if (data.weeklyFocusMinutes && weeklyChart) {
+                        weeklyChart.data.datasets[0].data = data.weeklyFocusMinutes;
+                        weeklyChart.update();
+                    }
+
+                    // 속한 그룹 처리
+                    if (data.groupId) {
+                        document.getElementById('no-group-view').classList.add('hidden');
+                        document.getElementById('in-group-view').classList.remove('hidden');
+                        listenGroupInfo(data.groupId);
+                    } else {
+                        document.getElementById('no-group-view').classList.remove('hidden');
+                        document.getElementById('in-group-view').classList.add('hidden');
+                        if (unsubscribeGroup) unsubscribeGroup();
+                    }
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // 개인 그룹 생성
+        // ----------------------------------------------------
+        window.createGroup = async function() {
+            const groupName = document.getElementById('new-group-name').value.trim();
+            if (!groupName) return alert("그룹 이름을 입력해주세요.");
+
+            try {
+                // groups 컬렉션에 새 문서 추가
+                const groupRef = await addDoc(collection(db, "groups"), {
+                    name: groupName,
+                    createdBy: currentUser.uid,
+                    members: [currentUser.uid]
+                });
+
+                // 내 정보에 groupId 반영
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    groupId: groupRef.id
+                });
+
+                document.getElementById('new-group-name').value = '';
+                alert(`🎉 그룹 '${groupName}' 생성이 완료되었습니다!`);
+            } catch (err) { alert("그룹 생성 실패: " + err.message); }
+        };
+
+        // ----------------------------------------------------
+        // 개인 그룹 참여 (코드 입력)
+        // ----------------------------------------------------
+        window.joinGroup = async function() {
+            const groupId = document.getElementById('join-group-id').value.trim();
+            if (!groupId) return alert("초대 코드를 입력해주세요.");
+
+            try {
+                const groupRef = doc(db, "groups", groupId);
+                const groupSnap = await getDoc(groupRef);
+
+                if (!groupSnap.exists()) {
+                    return alert("존재하지 않는 그룹 코드입니다.");
+                }
+
+                // 그룹 멤버에 나 추가
+                await updateDoc(groupRef, {
+                    members: arrayUnion(currentUser.uid)
+                });
+
+                // 내 유저 정보에 groupId 저장
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    groupId: groupId
+                });
+
+                document.getElementById('join-group-id').value = '';
+                alert("그룹 참여 성공!");
+            } catch (err) { alert("그룹 참여 실패: " + err.message); }
+        };
+
+        // ----------------------------------------------------
+        // 그룹 탈퇴
+        // ----------------------------------------------------
+        window.leaveGroup = async function() {
+            if (!confirm("정말 그룹을 탈퇴하시겠습니까?")) return;
+
+            try {
+                const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+                const groupId = userSnap.data().groupId;
+
+                if (groupId) {
+                    await updateDoc(doc(db, "groups", groupId), {
+                        members: arrayRemove(currentUser.uid)
+                    });
+                }
+
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    groupId: ""
+                });
+
+                alert("그룹에서 탈퇴했습니다.");
+            } catch (err) { alert("탈퇴 실패: " + err.message); }
+        };
+
+        // ----------------------------------------------------
+        // 내가 속한 그룹 정보 및 멤버 출석 실시간 동기화
+        // ----------------------------------------------------
+        function listenGroupInfo(groupId) {
+            if (unsubscribeGroup) unsubscribeGroup();
+
+            const groupRef = doc(db, "groups", groupId);
+            unsubscribeGroup = onSnapshot(groupRef, async (groupSnap) => {
+                if (groupSnap.exists()) {
+                    const groupData = groupSnap.data();
+                    document.getElementById('current-group-name').innerText = groupData.name;
+                    document.getElementById('current-group-id').innerText = groupSnap.id;
+
+                    const memberListEl = document.getElementById('group-member-list');
+                    memberListEl.innerHTML = '';
+
+                    // 멤버별 데이터 가져오기
+                    for (const memberUid of groupData.members) {
+                        const mUserSnap = await getDoc(doc(db, "users", memberUid));
+                        if (mUserSnap.exists()) {
+                            const mData = mUserSnap.data();
+                            const memberDiv = document.createElement('div');
+                            memberDiv.className = 'row';
+                            memberDiv.style.borderBottom = '1px solid #f0f0f0';
+                            memberDiv.style.padding = '6px 0';
+
+                            const isMe = memberUid === currentUser.uid;
+                            const displayName = isMe ? '나' : `멤버 (${memberUid.slice(0, 4)})`;
+                            const streak = mData.attendanceStreak || 0;
+
+                            memberDiv.innerHTML = `
+                                <span>🔥 ${displayName}</span>
+                                <span style="font-size: 0.9rem; color: #555;">연속 ${streak}일 출석 중</span>
+                            `;
+                            memberListEl.appendChild(memberDiv);
+                        }
+                    }
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // 출석 체크
+        // ----------------------------------------------------
+        window.checkAttendance = async function() {
+            if (!currentUser) return;
+            const userRef = doc(db, "users", currentUser.uid);
+            const docSnap = await getDoc(userRef);
+            const data = docSnap.data();
+
+            const today = new Date();
+            const todayStr = today.toISOString().slice(0, 10);
+            
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+            let newStreak = 1;
+            
+            if (data && data.lastAttendanceDate === yesterdayStr) {
+                newStreak = (data.attendanceStreak || 0) + 1;
+            }
+
+            await updateDoc(userRef, {
+                attendanceStreak: newStreak,
+                lastAttendanceDate: todayStr
+            });
+            
+            alert(`🎉 출석 완료! 현재 ${newStreak}일 연속 출석 중입니다!`);
+        };
+
+        // ----------------------------------------------------
+        // 집중 시간 DB 적립 (+1분 버튼 & 타이머 완료 시)
+        // ----------------------------------------------------
+        window.addFocusTime = async function(minutes) {
+            if (!currentUser) return;
+            const userRef = doc(db, "users", currentUser.uid);
+            const docSnap = await getDoc(userRef);
+            const data = docSnap.data();
+
+            let weeklyArr = (data && data.weeklyFocusMinutes) ? data.weeklyFocusMinutes : [0, 0, 0, 0, 0, 0, 0];
+            const todayIndex = new Date().getDay();
+            weeklyArr[todayIndex] += minutes;
+
+            await updateDoc(userRef, { weeklyFocusMinutes: weeklyArr });
+        };
+
+        // ----------------------------------------------------
+        // 타이머 제어
+        // ----------------------------------------------------
+        window.toggleTimer = function() {
+            const btn = document.getElementById('timer-btn');
+            if (timerState.isRunning) {
+                clearInterval(timerState.interval);
+                timerState.isRunning = false;
+                btn.innerText = "이어서 시작";
+            } else {
+                timerState.isRunning = true;
+                btn.innerText = "일시정지";
+                timerState.interval = setInterval(() => {
+                    timerState.remainingSeconds--;
+                    updateTimerDisplay();
+
+                    if (timerState.remainingSeconds <= 0) {
+                        clearInterval(timerState.interval);
+                        timerState.isRunning = false;
+                        btn.innerText = "시작";
+                        window.addFocusTime(25);
+                        alert("⏱️ 목표 시간 달성! DB에 기록되었습니다.");
+                        timerState.remainingSeconds = 25 * 60;
+                        updateTimerDisplay();
+                    }
+                }, 1000);
+            }
+        };
+
+        window.resetTimer = function() {
+            clearInterval(timerState.interval);
+            timerState.isRunning = false;
+            timerState.remainingSeconds = 25 * 60;
+            document.getElementById('timer-btn').innerText = "시작";
+            updateTimerDisplay();
+        };
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerState.remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (timerState.remainingSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            weeklyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['일', '월', '화', '수', '목', '금', '토'],
+                    datasets: [{
+                        label: '집중 시간 (분)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    </script>
 </body>
 </html>
